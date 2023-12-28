@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const questionSchema = new Schema({
+export const questionSchema = new Schema({
     question: String,
     options: [String],
     correct_answer: String,

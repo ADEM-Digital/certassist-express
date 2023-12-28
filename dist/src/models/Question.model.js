@@ -23,9 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Question = void 0;
+exports.Question = exports.questionSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const questionSchema = new mongoose_1.Schema({
+exports.questionSchema = new mongoose_1.Schema({
     question: String,
     options: [String],
     correct_answer: String,
@@ -33,4 +33,4 @@ const questionSchema = new mongoose_1.Schema({
     topic: String,
     subtopic: String
 });
-exports.Question = mongoose_1.default.model("Question", questionSchema, "Questions");
+exports.Question = mongoose_1.default.model("Question", exports.questionSchema, "Questions");

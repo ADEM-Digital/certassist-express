@@ -1,9 +1,10 @@
 {
   "include": [
     "./src/**/*",
-    "./models/**/*",
+    "src/models/**/*",
     "./database/**/*",
-    "./models/**/*"
+    "src/models/**/*",
+    "."
   ],
   "exclude": [
     "node_modules",
