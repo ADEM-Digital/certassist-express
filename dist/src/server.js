@@ -29,9 +29,89 @@ app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.static("public"));
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
-app.get("/", (req, res) => {
-    res.send("Express + TypeScript Server");
-});
+app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.body;
+    try {
+        let userData = yield UserData_model_1.UserData.findOne({ userId });
+        let questionCount = yield Question_model_1.Question.countDocuments();
+        // Call Perf by Diff
+        // let sourceQuestions = await Question.find({
+        //   _id: {
+        //     $in: userData
+        //       ? [...userData.correctQuestions, ...userData.incorrectQuestions]
+        //       : [],
+        //   },
+        // }).select("_id difficulty_level topic subtopic");
+        // let performanceByDifficulty = {
+        //   "easy": {
+        //     correctCount: userData?.correctQuestions.reduce((acc, currVal) => {
+        //       let foundQuestion = sourceQuestions ? sourceQuestions.find((sourceQuestion) => sourceQuestion._id.toString() === currVal) : undefined
+        //       if(!foundQuestion) return acc;
+        //       foundQuestion.
+        //     }, 0 )
+        //   }
+        // } 
+        let difficultyPerformanceResult = yield Test_model_1.Test.aggregate([
+            {
+                $match: {
+                    testStatus: "completed"
+                }
+            },
+            {
+                $unwind: "$questions"
+            },
+            {
+                $lookup: {
+                    from: "Questions",
+                    let: { questionId: "$questions.id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$_id", { $toObjectId: "$$questionId" }]
+                                }
+                            }
+                        }
+                    ],
+                    as: "questionDetails"
+                }
+            },
+            {
+                $unwind: "$questionDetails"
+            },
+            {
+                $group: {
+                    _id: "$questionDetails.difficulty_level",
+                    totalQuestions: { $sum: 1 },
+                    correctAnswers: {
+                        $sum: {
+                            $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    difficulty: "$_id",
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    performance: {
+                        $divide: ["$correctAnswers", "$totalQuestions"]
+                    }
+                }
+            }
+        ]);
+        return res.status(200).json({
+            userData,
+            questionCount,
+            difficultyPerformanceResult
+        });
+    }
+    catch (error) {
+        console.error("Error while retrieving the dashboard data", error);
+        return res.status(500).json("Error while retrieving the dashboard data");
+    }
+}));
 // Questions routes
 app.get("/questions", (req, res, next) => {
     Question_model_1.Question.find({})
@@ -368,7 +448,9 @@ app.post("/availableQuestionOptions", (req, res, next) => __awaiter(void 0, void
                     };
                 }
                 else if ((_4 = filter._id) === null || _4 === void 0 ? void 0 : _4.$in) {
-                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false);
+                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null
+                        ? userData.markedQuestions.includes(questionId.toString())
+                        : false);
                     filter._id.$in = filteredIds;
                 }
             }
@@ -384,7 +466,9 @@ app.post("/availableQuestionOptions", (req, res, next) => __awaiter(void 0, void
                     };
                 }
                 else if ((_7 = filter._id) === null || _7 === void 0 ? void 0 : _7.$in) {
-                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false);
+                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null
+                        ? userData.markedQuestions.includes(questionId.toString())
+                        : false);
                     filter._id.$nin = filteredIds;
                 }
             }
