@@ -22,6 +22,29 @@ const TestQuestionsSchema = new Schema({
   }
 
 })
+
+const TestAnalysisSchema = new Schema({
+  topicsAnalysis: {
+    type: [{
+      topic: String,
+      correctCount: Number,
+      incorrectCount: Number,
+      score: Number
+    }],
+    default: null
+  },
+  subtopicsAnalysis: {
+    type: [{
+      topic: String,
+      subtopic: String,
+      correctCount: Number,
+      incorrectCount: Number,
+      score: Number
+    }],
+    default: null
+  }
+});
+
 const testSchema = new Schema({
   selectedDifficulties: [difficultySchema],
   selectedQuestionStatus: String,
@@ -39,7 +62,12 @@ const testSchema = new Schema({
   testTime: Number,
   userId: String,
   startedAt: Number,
-  grade: Number
+  grade: Number,
+  analysis: {
+    type: TestAnalysisSchema,
+    default: null
+  }
+
 });
 
 export const Test = mongoose.model("test", testSchema, "tests");

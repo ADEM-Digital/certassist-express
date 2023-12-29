@@ -1,6 +1,11 @@
+import mongoose from "mongoose";
+
+
 export type QuestionFilterType = {
-  _id?: { $nin?: Array<string>; $in?: Array<string>;};
-  difficulty_level?: { $in?: Array<"hard" | "medium" | "easy">;};
+  _id?: { $nin?: Array<mongoose.Types.ObjectId>; $in?: Array<mongoose.Types.ObjectId>;};
+  difficulty_level?: { $in?: Array<"hard" | "medium" | "easy">};
+  topic?: {$in: string[]};
+  subtopic?: {$in: string[]};
 };
 
 export type QuestionDataType = {

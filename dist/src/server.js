@@ -20,6 +20,7 @@ const mongodb_1 = require("../database/mongodb");
 const UserData_model_1 = require("./models/UserData.model");
 const cors_1 = __importDefault(require("cors"));
 const Test_model_1 = require("./models/Test.model");
+const mongoose_1 = __importDefault(require("mongoose"));
 dotenv_1.default.config();
 mongodb_1.database;
 const app = (0, express_1.default)();
@@ -41,53 +42,236 @@ app.get("/questions", (req, res, next) => {
     });
 });
 app.post("/questions/ids", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = yield UserData_model_1.UserData.findOne({ userId: req.query.userId });
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    console.log(req.body);
+    const userData = yield UserData_model_1.UserData.findOne({ userId: req.body.userId });
     let filter = {};
-    if (req.body.selectedDifficulties) {
-        filter["difficulty_level"] = { $in: req.body.selectedDifficulties };
+    const { selectedQuestionStatus, selectedAnswerStatus, selectedMarkStatus, selectedDifficulties, selectedTopics, selectedSubtopics, } = req.body;
+    if (selectedDifficulties) {
+        let difficulties = selectedDifficulties;
+        filter["difficulty_level"] = {
+            $in: difficulties.findIndex((diff) => diff.value === "all") > -1
+                ? ["easy", "medium", "hard"]
+                : difficulties.map((difficulty) => difficulty.value),
+        };
     }
-    if (req.body.selectedQuestionStatus !== "all") {
-        if (req.body.selectedQuestionStatus === "used") {
-            filter["_id"] = { $in: userData === null || userData === void 0 ? void 0 : userData.usedQuestions };
+    if (selectedQuestionStatus &&
+        selectedQuestionStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.usedQuestions.length) > 0) {
+        if (selectedQuestionStatus === "used") {
+            filter["_id"] = {
+                $in: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+            };
         }
         else if (req.body.selectedQuestionStatus === "unused") {
-            filter["_id"] = { $nin: userData === null || userData === void 0 ? void 0 : userData.usedQuestions };
+            filter["_id"] = {
+                $nin: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+            };
         }
     }
+    if (selectedAnswerStatus &&
+        selectedAnswerStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.length) > 0) {
+        if (selectedAnswerStatus === "incorrect") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_a = filter["_id"]) === null || _a === void 0 ? void 0 : _a.$in)
+                    ? [
+                        ...filter["_id"].$in,
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_b = filter["_id"]) === null || _b === void 0 ? void 0 : _b.$in)
+                    ? [
+                        ...filter["_id"].$in,
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+        else if (selectedAnswerStatus === "correct") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_c = filter["_id"]) === null || _c === void 0 ? void 0 : _c.$in)
+                    ? [
+                        ...filter["_id"].$in,
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_d = filter["_id"]) === null || _d === void 0 ? void 0 : _d.$in)
+                    ? [
+                        ...filter["_id"].$in,
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+    }
+    if (selectedMarkStatus !== "all") {
+        if (userData === null || userData === void 0 ? void 0 : userData.markedQuestions) {
+            if (selectedMarkStatus === "marked") {
+                filter["_id"] = {
+                    $nin: ((_e = filter["_id"]) === null || _e === void 0 ? void 0 : _e.$nin) ? [...filter._id.$nin] : undefined,
+                    $in: ((_f = filter["_id"]) === null || _f === void 0 ? void 0 : _f.$in)
+                        ? [
+                            ...filter["_id"].$in,
+                            ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                        ]
+                        : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                };
+            }
+            else if (selectedMarkStatus === "unmarked") {
+                filter["_id"] = {
+                    $in: ((_g = filter["_id"]) === null || _g === void 0 ? void 0 : _g.$in) ? [...filter._id.$in] : undefined,
+                    $nin: ((_h = filter["_id"]) === null || _h === void 0 ? void 0 : _h.$nin)
+                        ? [
+                            ...filter["_id"].$nin,
+                            ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                        ]
+                        : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                };
+            }
+        }
+    }
+    if (!(selectedTopics.findIndex((topic) => topic === 0) > -1)) {
+        filter["topic"] = { $in: selectedTopics };
+    }
+    if (!(selectedSubtopics.findIndex((subtopic) => subtopic === 0) > -1)) {
+        filter["subtopic"] = { $in: selectedSubtopics };
+    }
+    // check if id filters are undefined
+    if (((_j = filter._id) === null || _j === void 0 ? void 0 : _j.$in) === undefined) {
+        (_k = filter._id) === null || _k === void 0 ? true : delete _k.$in;
+    }
+    if (((_l = filter._id) === null || _l === void 0 ? void 0 : _l.$nin) === undefined) {
+        (_m = filter._id) === null || _m === void 0 ? true : delete _m.$nin;
+    }
+    console.log(filter);
     Question_model_1.Question.aggregate([
         { $match: filter },
         { $sample: { size: req.body.questionCount } },
         { $project: { _id: 1 } },
     ])
-        .then((questions) => res.status(200).json(questions.map((question) => question._id)))
+        .then((questions) => {
+        console.log(questions);
+        return res.status(200).json(questions.map((question) => question._id));
+    })
         .catch((error) => {
         console.error("Error while retrieving the question", error);
         res.status(500).send({ error: "Failed to retrieve the questions." });
     });
 }));
-app.get("/availablequestions", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.query);
-    const userData = yield UserData_model_1.UserData.find({ userId: req.query.userId });
+app.post("/availablequestions", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+    console.log(req.body);
+    const userData = yield UserData_model_1.UserData.findOne({ userId: req.body.userId });
     let filter = {};
-    if (req.query.selectedDifficulties) {
-        let difficulties = req.query.selectedDifficulties;
+    const { selectedQuestionStatus, selectedAnswerStatus, selectedMarkStatus, selectedDifficulties, } = req.body;
+    if (selectedDifficulties) {
+        let difficulties = selectedDifficulties;
         filter["difficulty_level"] = {
-            $in: difficulties.map((difficulty) => difficulty.value),
+            $in: difficulties.findIndex((diff) => diff.value === "all") > -1
+                ? ["easy", "medium", "hard"]
+                : difficulties.map((difficulty) => difficulty.value),
         };
     }
-    if (req.query.selectedQuestionStatus &&
-        req.query.selectedQuestionStatus !== "all") {
-        if (req.query.selectedQuestionStatus === "unused") {
+    if (selectedQuestionStatus &&
+        selectedQuestionStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.usedQuestions.length) > 0) {
+        if (selectedQuestionStatus === "used") {
             filter["_id"] = {
-                $nin: userData.map((users) => users.usedQuestions).flat(),
+                $in: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
             };
         }
-        else if (req.query.selectedQuestionStatus === "used") {
+        else if (req.body.selectedQuestionStatus === "unused") {
             filter["_id"] = {
-                $in: userData.map((users) => users.usedQuestions).flat(),
+                $nin: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
             };
         }
     }
+    if (selectedAnswerStatus &&
+        selectedAnswerStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.length) > 0) {
+        if (selectedAnswerStatus === "incorrect") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_o = filter["_id"]) === null || _o === void 0 ? void 0 : _o.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_p = filter["_id"]) === null || _p === void 0 ? void 0 : _p.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+        else if (selectedAnswerStatus === "correct") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_q = filter["_id"]) === null || _q === void 0 ? void 0 : _q.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_r = filter["_id"]) === null || _r === void 0 ? void 0 : _r.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+    }
+    if (selectedMarkStatus !== "all") {
+        if (userData === null || userData === void 0 ? void 0 : userData.markedQuestions) {
+            if (selectedMarkStatus === "marked") {
+                if (selectedAnswerStatus === "all") {
+                    filter["_id"] = {
+                        $nin: ((_s = filter["_id"]) === null || _s === void 0 ? void 0 : _s.$nin) ? [...filter._id.$nin] : undefined,
+                        $in: ((_t = filter["_id"]) === null || _t === void 0 ? void 0 : _t.$in)
+                            ? [
+                                ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                            ]
+                            : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    };
+                }
+                else if ((_u = filter._id) === null || _u === void 0 ? void 0 : _u.$in) {
+                    let filteredIds = filter._id.$in.filter((questionId) => userData.markedQuestions.includes(questionId.toString()));
+                    filter._id.$in = filteredIds;
+                }
+            }
+            else if (selectedMarkStatus === "unmarked") {
+                if (selectedAnswerStatus === "all") {
+                    filter["_id"] = {
+                        $in: ((_v = filter["_id"]) === null || _v === void 0 ? void 0 : _v.$in) ? [...filter._id.$in] : undefined,
+                        $nin: ((_w = filter["_id"]) === null || _w === void 0 ? void 0 : _w.$nin)
+                            ? [
+                                ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                            ]
+                            : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    };
+                }
+                else if ((_x = filter._id) === null || _x === void 0 ? void 0 : _x.$in) {
+                    let filteredIds = filter._id.$in.filter((questionId) => userData.markedQuestions.includes(questionId.toString()));
+                    filter._id.$nin = filteredIds;
+                }
+            }
+        }
+    }
+    console.log(filter);
     Question_model_1.Question.find(Object.assign({}, filter))
         .select("_id difficulty_level topic subtopic")
         .then((questions) => res.status(200).json(questions))
@@ -97,17 +281,158 @@ app.get("/availablequestions", (req, res, next) => __awaiter(void 0, void 0, voi
     });
 }));
 app.post("/availableQuestionOptions", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
     let topicsQuery = [];
     let subtopicsQuery = [];
+    const { selectedQuestionStatus, selectedAnswerStatus, selectedMarkStatus } = req.body;
+    let userData = yield UserData_model_1.UserData.findOne({ userId: req.body.userId });
+    let filter = {};
+    if (req.body.selectedDifficulties) {
+        let difficulties = req.body.selectedDifficulties;
+        filter["difficulty_level"] = {
+            $in: difficulties.findIndex((diff) => diff.value === "all") > -1
+                ? ["easy", "medium", "hard"]
+                : difficulties.map((difficulty) => difficulty.value),
+        };
+    }
+    if (userData === null || userData === void 0 ? void 0 : userData.usedQuestions) {
+        console.log(selectedQuestionStatus &&
+            selectedQuestionStatus !== "all" &&
+            (userData === null || userData === void 0 ? void 0 : userData.usedQuestions.length));
+    }
+    if (selectedQuestionStatus &&
+        selectedQuestionStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.usedQuestions.length) > 0) {
+        if (selectedQuestionStatus === "used") {
+            filter["_id"] = {
+                $in: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+            };
+        }
+        else if (req.body.selectedQuestionStatus === "unused") {
+            filter["_id"] = {
+                $nin: userData === null || userData === void 0 ? void 0 : userData.usedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+            };
+        }
+    }
+    if (selectedAnswerStatus &&
+        selectedAnswerStatus !== "all" &&
+        userData &&
+        (userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.length) > 0) {
+        if (selectedAnswerStatus === "incorrect") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_y = filter["_id"]) === null || _y === void 0 ? void 0 : _y.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_z = filter["_id"]) === null || _z === void 0 ? void 0 : _z.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+        else if (selectedAnswerStatus === "correct") {
+            if (filter["_id"]) {
+                filter["_id"]["$in"] = ((_0 = filter["_id"]) === null || _0 === void 0 ? void 0 : _0.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+            else {
+                filter["_id"] = {};
+                filter["_id"]["$in"] = ((_1 = filter["_id"]) === null || _1 === void 0 ? void 0 : _1.$in)
+                    ? [
+                        ...userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    ]
+                    : userData === null || userData === void 0 ? void 0 : userData.correctQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId));
+            }
+        }
+    }
+    if (selectedMarkStatus !== "all") {
+        if (userData !== null && (userData === null || userData === void 0 ? void 0 : userData.markedQuestions)) {
+            if (selectedMarkStatus === "marked") {
+                if (selectedAnswerStatus === "all") {
+                    filter["_id"] = {
+                        $nin: ((_2 = filter["_id"]) === null || _2 === void 0 ? void 0 : _2.$nin) ? [...filter._id.$nin] : undefined,
+                        $in: ((_3 = filter["_id"]) === null || _3 === void 0 ? void 0 : _3.$in)
+                            ? [
+                                ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                            ]
+                            : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    };
+                }
+                else if ((_4 = filter._id) === null || _4 === void 0 ? void 0 : _4.$in) {
+                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false);
+                    filter._id.$in = filteredIds;
+                }
+            }
+            else if (selectedMarkStatus === "unmarked") {
+                if (selectedAnswerStatus === "all") {
+                    filter["_id"] = {
+                        $in: ((_5 = filter["_id"]) === null || _5 === void 0 ? void 0 : _5.$in) ? [...filter._id.$in] : undefined,
+                        $nin: ((_6 = filter["_id"]) === null || _6 === void 0 ? void 0 : _6.$nin)
+                            ? [
+                                ...userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                            ]
+                            : userData.markedQuestions.map((questionId) => mongoose_1.default.Types.ObjectId.createFromHexString(questionId)),
+                    };
+                }
+                else if ((_7 = filter._id) === null || _7 === void 0 ? void 0 : _7.$in) {
+                    let filteredIds = filter._id.$in.filter((questionId) => userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false);
+                    filter._id.$nin = filteredIds;
+                }
+            }
+        }
+    }
+    // if (req.body.selectedMarkStatus !== "all") {
+    //   if (userData?.markedQuestions) {
+    //     if (req.body.selectedMarkStatus === "marked") {
+    //       filter["_id"] = {
+    //         $nin: filter["_id"]?.$nin ? [...filter._id.$nin] : undefined,
+    //         $in: filter["_id"]?.$in
+    //           ? [
+    //               ...userData.markedQuestions.map((questionId) =>
+    //                 mongoose.Types.ObjectId.createFromHexString(questionId)
+    //               ),
+    //             ]
+    //           : userData.markedQuestions.map((questionId) =>
+    //               mongoose.Types.ObjectId.createFromHexString(questionId)
+    //             ),
+    //       };
+    //     } else if (req.body.selectedMarkStatus === "unmarked") {
+    //       filter["_id"] = {
+    //         $in: filter["_id"]?.$in ? [...filter._id.$in] : undefined,
+    //         $nin: filter["_id"]?.$nin
+    //           ? [
+    //               ...userData.markedQuestions.map((questionId) =>
+    //                 mongoose.Types.ObjectId.createFromHexString(questionId)
+    //               ),
+    //             ]
+    //           : userData.markedQuestions.map((questionId) =>
+    //               mongoose.Types.ObjectId.createFromHexString(questionId)
+    //             ),
+    //       };
+    //     }
+    //   }
+    // }
+    // check if id filters are undefined
+    if (((_8 = filter._id) === null || _8 === void 0 ? void 0 : _8.$in) === undefined) {
+        (_9 = filter._id) === null || _9 === void 0 ? true : delete _9.$in;
+    }
+    if (((_10 = filter._id) === null || _10 === void 0 ? void 0 : _10.$nin) === undefined) {
+        (_11 = filter._id) === null || _11 === void 0 ? true : delete _11.$nin;
+    }
+    console.log(filter);
     if (req.body.availableTopics) {
         topicsQuery = yield Question_model_1.Question.aggregate([
             {
-                $match: {
-                    topic: { $in: req.body.availableTopics },
-                    difficulty_level: {
-                        $in: req.body.selectedDifficulties.map((diff) => diff.value),
-                    },
-                },
+                $match: Object.assign({}, filter),
             },
             {
                 $project: {
@@ -135,12 +460,7 @@ app.post("/availableQuestionOptions", (req, res, next) => __awaiter(void 0, void
     if (req.body.availableSubtopics) {
         subtopicsQuery = yield Question_model_1.Question.aggregate([
             {
-                $match: {
-                    subtopic: { $in: req.body.availableSubtopics },
-                    difficulty_level: {
-                        $in: req.body.selectedDifficulties.map((diff) => diff.value),
-                    },
-                },
+                $match: filter,
             },
             {
                 $project: {
@@ -240,7 +560,7 @@ app.get("/tests", (req, res, next) => {
 });
 app.post("/tests", (req, res, next) => {
     console.log(req.body);
-    Test_model_1.Test.create(Object.assign({}, req.body))
+    Test_model_1.Test.create(Object.assign(Object.assign({}, req.body), { questionCount: req.body.questions.length }))
         .then((test) => res.status(200).json(test))
         .catch((error) => {
         console.error("Error while creating the test", error);
@@ -265,24 +585,25 @@ app.get("/tests/:id", (req, res, next) => {
         res.status(500).json("Couldn't find a test");
     });
 });
-app.put("/tests/:id", (req, res, next) => {
+app.put("/tests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     let updateParams = req.body;
-    console.log(updateParams);
-    Test_model_1.Test.updateOne({ _id: id }, {
-        $set: updateParams,
-    })
-        .then((test) => res.status(200).json(test))
-        .catch((error) => {
+    try {
+        let userData = yield UserData_model_1.UserData.findOne({ userId: updateParams.userId });
+        let updateResult = yield Test_model_1.Test.updateOne({ _id: id }, {
+            $set: updateParams,
+        });
+        return res.status(200).json(updateResult);
+    }
+    catch (error) {
         console.error("Error updating the test", error);
         res.status(500).json("Error updating the test.");
-    });
-});
+    }
+}));
 app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let { id } = req.params;
     let test = req.body;
     test.testStatus = "completed";
-    console.log(test);
     let questionsIds = test.questions.map((question) => question.id);
     let sourceQuestions = [];
     try {
@@ -292,7 +613,6 @@ app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0,
         console.log("Error retrieving source questions", error);
         return res.status(500).json("Error updating the test.");
     }
-    console.log(sourceQuestions.length);
     test.questions.forEach((question, index) => {
         let questionData = sourceQuestions.find((sourceQuestion) => {
             return question.id === sourceQuestion._id.toString();
@@ -308,12 +628,119 @@ app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0,
             test.questionCount) *
             100;
     try {
+        let userData = yield UserData_model_1.UserData.findOne({ userId: test.userId });
         let updateResponse = yield Test_model_1.Test.updateOne({ _id: id }, test);
-        return res.status(200).jsonp(updateResponse);
+        let userDataUpdate = {
+            usedQuestions: (userData === null || userData === void 0 ? void 0 : userData.usedQuestions)
+                ? Array.from(new Set([
+                    ...userData.usedQuestions,
+                    ...test.questions.map((question) => question.id),
+                ]))
+                : Array.from(new Set([...test.questions.map((question) => question.id)])),
+            correctQuestions: (userData === null || userData === void 0 ? void 0 : userData.correctQuestions)
+                ? Array.from(new Set([
+                    ...userData.correctQuestions,
+                    ...test.questions
+                        .filter((question) => question.correct === 1)
+                        .map((question) => question.id),
+                ]))
+                : Array.from(new Set([
+                    ...test.questions
+                        .filter((question) => question.correct === 1)
+                        .map((question) => question.id),
+                ])),
+            incorrectQuestions: (userData === null || userData === void 0 ? void 0 : userData.incorrectQuestions)
+                ? Array.from(new Set([
+                    ...userData.incorrectQuestions,
+                    ...test.questions
+                        .filter((question) => question.correct === 0)
+                        .map((question) => question.id),
+                ]))
+                : Array.from(new Set([
+                    ...test.questions
+                        .filter((question) => question.correct === 0)
+                        .map((question) => question.id),
+                ])),
+            markedQuestions: (userData === null || userData === void 0 ? void 0 : userData.markedQuestions)
+                ? Array.from(new Set([
+                    ...userData.markedQuestions,
+                    ...test.questions
+                        .filter((question) => question.marked === true)
+                        .map((question) => question.id),
+                ]))
+                : Array.from(new Set([
+                    ...test.questions
+                        .filter((question) => question.marked === true)
+                        .map((question) => question.id),
+                ])),
+        };
+        let userDataUpdateResult = yield UserData_model_1.UserData.updateOne({ _id: userData === null || userData === void 0 ? void 0 : userData._id }, {
+            $set: userDataUpdate,
+        });
+        return res.status(200).jsonp({
+            testUpdateResult: updateResponse,
+            userDataUpdateResult: userDataUpdateResult,
+        });
     }
     catch (error) {
         console.error("Error while updating the test grade.", error);
         return res.status(500).json("Couldn't update the test grade.");
+    }
+}));
+app.put("/tests/update-analysis/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        let test = yield Test_model_1.Test.findOne({ _id: id });
+        let testSourceQuestions = yield Question_model_1.Question.find({
+            _id: { $in: test === null || test === void 0 ? void 0 : test.questions.map((question) => question.id) },
+        });
+        let testTopics = Array.from(new Set(testSourceQuestions.map((testSourceQuestion) => testSourceQuestion.topic)));
+        let testSubtopics = Array.from(new Set(testSourceQuestions.map((testSourceQuestion) => testSourceQuestion.subtopic)));
+        let testAnalysis = {
+            topicsAnalysis: testTopics.map((topic) => {
+                if (topic) {
+                    let topicQuestions = testSourceQuestions.filter((sourceQuestion) => sourceQuestion.topic === topic);
+                    let correctCount = topicQuestions.reduce((acc, currVal) => {
+                        let foundMatch = test === null || test === void 0 ? void 0 : test.questions.find((q) => q.id === currVal._id.toString());
+                        return foundMatch ? acc + foundMatch.correct : acc + 0;
+                    }, 0);
+                    let incorrectCount = topicQuestions.length - correctCount;
+                    return {
+                        topic: topic,
+                        correctCount: correctCount,
+                        incorrectCount: incorrectCount,
+                        score: correctCount / (correctCount + incorrectCount),
+                    };
+                }
+            }),
+            subtopicsAnalysis: testSubtopics.map((subtopic) => {
+                if (subtopic) {
+                    let subtopicQuestions = testSourceQuestions.filter((sourceQuestion) => sourceQuestion.subtopic === subtopic);
+                    let topic;
+                    if (subtopicQuestions.length > 0) {
+                        topic = subtopicQuestions[0].topic;
+                    }
+                    let correctCount = subtopicQuestions.reduce((acc, currVal) => {
+                        let foundMatch = test === null || test === void 0 ? void 0 : test.questions.find((q) => q.id === currVal._id.toString());
+                        return foundMatch ? acc + foundMatch.correct : acc + 0;
+                    }, 0);
+                    let incorrectCount = subtopicQuestions.length - correctCount;
+                    return {
+                        topic: topic,
+                        subtopic: subtopic,
+                        correctCount: correctCount,
+                        incorrectCount: incorrectCount,
+                        score: correctCount / (correctCount + incorrectCount),
+                    };
+                }
+            }),
+        };
+        let updateResult = yield Test_model_1.Test.updateOne({ _id: id }, { $set: { analysis: testAnalysis } });
+        return res.status(200).json(updateResult);
+    }
+    catch (error) {
+        console.log("Failed to update the test analysis", error);
+        return res.status(500).json("Failed to update the test analysis.");
     }
 }));
 app.listen(port, () => {

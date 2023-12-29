@@ -44,6 +44,27 @@ const TestQuestionsSchema = new mongoose_1.Schema({
         default: null
     }
 });
+const TestAnalysisSchema = new mongoose_1.Schema({
+    topicsAnalysis: {
+        type: [{
+                topic: String,
+                correctCount: Number,
+                incorrectCount: Number,
+                score: Number
+            }],
+        default: null
+    },
+    subtopicsAnalysis: {
+        type: [{
+                topic: String,
+                subtopic: String,
+                correctCount: Number,
+                incorrectCount: Number,
+                score: Number
+            }],
+        default: null
+    }
+});
 const testSchema = new mongoose_1.Schema({
     selectedDifficulties: [difficultySchema],
     selectedQuestionStatus: String,
@@ -61,6 +82,10 @@ const testSchema = new mongoose_1.Schema({
     testTime: Number,
     userId: String,
     startedAt: Number,
-    grade: Number
+    grade: Number,
+    analysis: {
+        type: TestAnalysisSchema,
+        default: null
+    }
 });
 exports.Test = mongoose_1.default.model("test", testSchema, "tests");
