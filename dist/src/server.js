@@ -34,31 +34,15 @@ app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0,
     try {
         let userData = yield UserData_model_1.UserData.findOne({ userId });
         let questionCount = yield Question_model_1.Question.countDocuments();
-        // Call Perf by Diff
-        // let sourceQuestions = await Question.find({
-        //   _id: {
-        //     $in: userData
-        //       ? [...userData.correctQuestions, ...userData.incorrectQuestions]
-        //       : [],
-        //   },
-        // }).select("_id difficulty_level topic subtopic");
-        // let performanceByDifficulty = {
-        //   "easy": {
-        //     correctCount: userData?.correctQuestions.reduce((acc, currVal) => {
-        //       let foundQuestion = sourceQuestions ? sourceQuestions.find((sourceQuestion) => sourceQuestion._id.toString() === currVal) : undefined
-        //       if(!foundQuestion) return acc;
-        //       foundQuestion.
-        //     }, 0 )
-        //   }
-        // } 
         let difficultyPerformanceResult = yield Test_model_1.Test.aggregate([
             {
                 $match: {
-                    testStatus: "completed"
-                }
+                    userId: userId,
+                    testStatus: "completed",
+                },
             },
             {
-                $unwind: "$questions"
+                $unwind: "$questions",
             },
             {
                 $lookup: {
@@ -68,16 +52,16 @@ app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0,
                         {
                             $match: {
                                 $expr: {
-                                    $eq: ["$_id", { $toObjectId: "$$questionId" }]
-                                }
-                            }
-                        }
+                                    $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                                },
+                            },
+                        },
                     ],
-                    as: "questionDetails"
-                }
+                    as: "questionDetails",
+                },
             },
             {
-                $unwind: "$questionDetails"
+                $unwind: "$questionDetails",
             },
             {
                 $group: {
@@ -85,10 +69,10 @@ app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0,
                     totalQuestions: { $sum: 1 },
                     correctAnswers: {
                         $sum: {
-                            $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0]
-                        }
-                    }
-                }
+                            $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+                        },
+                    },
+                },
             },
             {
                 $project: {
@@ -96,15 +80,119 @@ app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0,
                     totalQuestions: 1,
                     correctAnswers: 1,
                     performance: {
-                        $divide: ["$correctAnswers", "$totalQuestions"]
-                    }
-                }
-            }
+                        $divide: ["$correctAnswers", "$totalQuestions"],
+                    },
+                },
+            },
+        ]);
+        let topicPerformanceResult = yield Test_model_1.Test.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                    testStatus: "completed",
+                },
+            },
+            {
+                $unwind: "$questions",
+            },
+            {
+                $lookup: {
+                    from: "Questions",
+                    let: { questionId: "$questions.id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                                },
+                            },
+                        },
+                    ],
+                    as: "questionDetails",
+                },
+            },
+            {
+                $unwind: "$questionDetails",
+            },
+            {
+                $group: {
+                    _id: "$questionDetails.topic",
+                    totalQuestions: { $sum: 1 },
+                    correctAnswers: {
+                        $sum: {
+                            $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    topic: "$_id",
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    performance: {
+                        $divide: ["$correctAnswers", "$totalQuestions"],
+                    },
+                },
+            },
+        ]);
+        let subtopicPerformanceResult = yield Test_model_1.Test.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                    testStatus: "completed",
+                },
+            },
+            {
+                $unwind: "$questions",
+            },
+            {
+                $lookup: {
+                    from: "Questions",
+                    let: { questionId: "$questions.id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                                },
+                            },
+                        },
+                    ],
+                    as: "questionDetails",
+                },
+            },
+            {
+                $unwind: "$questionDetails",
+            },
+            {
+                $group: {
+                    _id: "$questionDetails.subtopic",
+                    totalQuestions: { $sum: 1 },
+                    correctAnswers: {
+                        $sum: {
+                            $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    subtopic: "$_id",
+                    totalQuestions: 1,
+                    correctAnswers: 1,
+                    performance: {
+                        $divide: ["$correctAnswers", "$totalQuestions"],
+                    },
+                },
+            },
         ]);
         return res.status(200).json({
             userData,
             questionCount,
-            difficultyPerformanceResult
+            difficultyPerformanceResult,
+            topicPerformanceResult,
+            subtopicPerformanceResult
         });
     }
     catch (error) {
