@@ -23,8 +23,180 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 
-app.get("/", (req, res) => {
-  res.send("Express + TypeScript Server");
+app.post("/dashboardData", async (req, res, next) => {
+  const { userId } = req.body;
+  try {
+    let userData = await UserData.findOne({ userId });
+
+    let questionCount = await Question.countDocuments();
+
+    let difficultyPerformanceResult = await Test.aggregate([
+      {
+        $match: {
+          userId: userId,
+          testStatus: "completed",
+        },
+      },
+      {
+        $unwind: "$questions",
+      },
+      {
+        $lookup: {
+          from: "Questions",
+          let: { questionId: "$questions.id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                },
+              },
+            },
+          ],
+          as: "questionDetails",
+        },
+      },
+      {
+        $unwind: "$questionDetails",
+      },
+      {
+        $group: {
+          _id: "$questionDetails.difficulty_level",
+          totalQuestions: { $sum: 1 },
+          correctAnswers: {
+            $sum: {
+              $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          difficulty: "$_id",
+          totalQuestions: 1,
+          correctAnswers: 1,
+          performance: {
+            $divide: ["$correctAnswers", "$totalQuestions"],
+          },
+        },
+      },
+    ]);
+
+    let topicPerformanceResult = await Test.aggregate([
+      {
+        $match: {
+          userId: userId,
+          testStatus: "completed",
+        },
+      },
+      {
+        $unwind: "$questions",
+      },
+      {
+        $lookup: {
+          from: "Questions",
+          let: { questionId: "$questions.id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                },
+              },
+            },
+          ],
+          as: "questionDetails",
+        },
+      },
+      {
+        $unwind: "$questionDetails",
+      },
+      {
+        $group: {
+          _id: "$questionDetails.topic",
+          totalQuestions: { $sum: 1 },
+          correctAnswers: {
+            $sum: {
+              $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          topic: "$_id",
+          totalQuestions: 1,
+          correctAnswers: 1,
+          performance: {
+            $divide: ["$correctAnswers", "$totalQuestions"],
+          },
+        },
+      },
+    ]);
+
+    let subtopicPerformanceResult = await Test.aggregate([
+      {
+        $match: {
+          userId: userId,
+          testStatus: "completed",
+        },
+      },
+      {
+        $unwind: "$questions",
+      },
+      {
+        $lookup: {
+          from: "Questions",
+          let: { questionId: "$questions.id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$_id", { $toObjectId: "$$questionId" }],
+                },
+              },
+            },
+          ],
+          as: "questionDetails",
+        },
+      },
+      {
+        $unwind: "$questionDetails",
+      },
+      {
+        $group: {
+          _id: "$questionDetails.subtopic",
+          totalQuestions: { $sum: 1 },
+          correctAnswers: {
+            $sum: {
+              $cond: [{ $eq: ["$questions.correct", 1] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          subtopic: "$_id",
+          totalQuestions: 1,
+          correctAnswers: 1,
+          performance: {
+            $divide: ["$correctAnswers", "$totalQuestions"],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      userData,
+      questionCount,
+      difficultyPerformanceResult,
+      topicPerformanceResult,
+      subtopicPerformanceResult
+    });
+  } catch (error) {
+    console.error("Error while retrieving the dashboard data", error);
+    return res.status(500).json("Error while retrieving the dashboard data");
+  }
 });
 
 // Questions routes
@@ -361,9 +533,9 @@ app.post("/availablequestions", async (req, res, next) => {
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
-          userData.markedQuestions.includes(questionId.toString())
-        );
-        filter._id.$nin = filteredIds;
+            userData.markedQuestions.includes(questionId.toString())
+          );
+          filter._id.$nin = filteredIds;
         }
       }
     }
@@ -396,7 +568,8 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
     name: string;
     totalQuestions: number;
   }[] = [];
-  const { selectedQuestionStatus, selectedAnswerStatus, selectedMarkStatus } = req.body;
+  const { selectedQuestionStatus, selectedAnswerStatus, selectedMarkStatus } =
+    req.body;
   let userData = await UserData.findOne({ userId: req.body.userId });
   let filter: QuestionFilterType = {};
 
@@ -498,7 +671,6 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
     }
   }
 
-  
   if (selectedMarkStatus !== "all") {
     if (userData !== null && userData?.markedQuestions) {
       if (selectedMarkStatus === "marked") {
@@ -516,7 +688,11 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
                 ),
           };
         } else if (filter._id?.$in) {
-          let filteredIds = filter._id.$in.filter((questionId) => userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false);
+          let filteredIds = filter._id.$in.filter((questionId) =>
+            userData !== null
+              ? userData.markedQuestions.includes(questionId.toString())
+              : false
+          );
           filter._id.$in = filteredIds;
         }
       } else if (selectedMarkStatus === "unmarked") {
@@ -535,15 +711,16 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
-          userData !== null ? userData.markedQuestions.includes(questionId.toString()) : false
-        );
-        filter._id.$nin = filteredIds;
+            userData !== null
+              ? userData.markedQuestions.includes(questionId.toString())
+              : false
+          );
+          filter._id.$nin = filteredIds;
         }
       }
     }
   }
-  
-  
+
   // if (req.body.selectedMarkStatus !== "all") {
   //   if (userData?.markedQuestions) {
   //     if (req.body.selectedMarkStatus === "marked") {
