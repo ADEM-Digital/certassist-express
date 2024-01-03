@@ -28,7 +28,25 @@ const port = process.env.PORT || 3000;
 app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.static("public"));
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+const allowedOrigins = [
+    'https://certassist-client.vercel.app',
+    'http://localhost:3000', // assuming your local frontend runs on port 3000
+    'http://127.0.0.1:3000' // alternatively, sometimes localhost might be referred to as 127.0.0.1
+];
+const corsOptions = {
+    // @ts-ignore
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+// @ts-ignore
+app.use((0, cors_1.default)(corsOptions));
 app.post("/dashboardData", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.body;
     try {
