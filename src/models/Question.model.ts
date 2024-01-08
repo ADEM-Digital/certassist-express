@@ -6,7 +6,8 @@ export const questionSchema = new Schema({
     correct_answer: String,
     explanation: String,
     topic: String,
-    subtopic: String
+    subtopic: String,
+    incorrect_explanations: [String]
 });
 
 export const Question = mongoose.model("Question", questionSchema, "Questions");

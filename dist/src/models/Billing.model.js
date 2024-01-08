@@ -23,15 +23,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Question = exports.questionSchema = void 0;
+exports.Billing = exports.billingSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-exports.questionSchema = new mongoose_1.Schema({
-    question: String,
-    options: [String],
-    correct_answer: String,
-    explanation: String,
-    topic: String,
-    subtopic: String,
-    incorrect_explanations: [String]
+exports.billingSchema = new mongoose_1.Schema({
+    documentType: String,
+    checkoutId: String,
+    subscriptionId: String,
+    invoice: String,
+    currency: String,
+    amountTotal: Number,
+    status: String,
+    customerEmail: String,
+    customerName: String,
+    createdAt: Date,
+    expiresAt: Date,
 });
-exports.Question = mongoose_1.default.model("Question", exports.questionSchema, "Questions");
+exports.Billing = mongoose_1.default.model("Billing", exports.billingSchema, "billings");

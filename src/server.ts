@@ -9,8 +9,11 @@ import { Test } from "./models/Test.model";
 import { QuestionFilterType, QuestionDataType } from "./types/QuestionTypes";
 import { TestAnalysisDataType, TestDataType } from "./types/TestTypes";
 import mongoose from "mongoose";
+import { Billing } from "./models/Billing.model";
 
 dotenv.config();
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_API_KEY);
 
 database;
 const app = express();
@@ -23,9 +26,9 @@ app.use(express.static("public"));
 app.use(express.json());
 
 const allowedOrigins = [
-  'https://certassist-client.vercel.app',
-  'http://localhost:3000',  // assuming your local frontend runs on port 3000
-  'http://127.0.0.1:3000'    // alternatively, sometimes localhost might be referred to as 127.0.0.1
+  "https://certassist-client.vercel.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
 ];
 
 const corsOptions = {
@@ -34,10 +37,10 @@ const corsOptions = {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 // @ts-ignore
 app.use(cors(corsOptions));
@@ -210,7 +213,7 @@ app.post("/dashboardData", async (req, res, next) => {
       questionCount,
       difficultyPerformanceResult,
       topicPerformanceResult,
-      subtopicPerformanceResult
+      subtopicPerformanceResult,
     });
   } catch (error) {
     console.error("Error while retrieving the dashboard data", error);
@@ -872,6 +875,7 @@ app.get("/questions/:id", (req, res, next) => {
     _id: id,
   })
     .then((question) => {
+      console.log(question);
       let questionObject = {};
       if (req.query.testStatus !== "completed") {
         questionObject = {
@@ -1201,6 +1205,78 @@ app.put("/tests/update-analysis/:id", async (req, res, next) => {
   } catch (error) {
     console.log("Failed to update the test analysis", error);
     return res.status(500).json("Failed to update the test analysis.");
+  }
+});
+
+app.post("/create-subscription-checkout-session", async (req, res, next) => {
+  const { priceId } = req.body;
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      success_url: process.env.STRIPE_SUCCESS_URL,
+      cancel_url: process.env.STRIPE_CANCEL_URL,
+    });
+
+    return res.status(200).json(session.url);
+  } catch (error) {
+    return res.status(500).json("Couldn't generate stripe session.");
+  }
+});
+
+app.post("/webhooks/stripe", async (req, res, next) => {
+  const { id, created, data, type } = req.body;
+
+  switch (type) {
+    case "checkout.session.completed":
+      let created = new Date(data.object.created * 1000);
+      let expiresAt = new Date(data.object.created * 1000);
+      expiresAt.setDate(expiresAt.getDate() + 30);
+      let billing = {
+        checkoutId: data.object.id,
+        amountTotal: data.object.amount_total,
+        createdAt: created,
+        currency: data.object.currency,
+        customerEmail: data.object.customer_details.email,
+        customerName: data.object.customer_details.name,
+        expiresAt: expiresAt,
+        invoice: data.object.invoice,
+        documentType: data.object.mode,
+        subscriptionId: data.object.subscription,
+        status: data.object.status,
+      };
+
+      try {
+        let response = await Billing.create(billing);
+
+        console.log(response);
+        return res.status(200).json("Updated the purchase information.");
+      } catch (error) {
+        console.error("Couldn't update the billing information", error);
+        return res.status(500).json("Couldn't update the billing information.");
+      }
+  }
+});
+
+app.get("/check-subscription/:email", async (req, res, next) => {
+  const { email } = req.params;
+  const now = new Date();
+  try {
+    let billings = await Billing.find({
+      customerEmail: email,
+      expiresAt: { $gt: now },
+    });
+
+    return res.status(200).json(billings);
+  } catch (error) {
+    console.error("Error while searching for a valid billing.", error);
+    return res.status(500).json("Error while searching for a valid billing.");
   }
 });
 
