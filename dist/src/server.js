@@ -953,7 +953,7 @@ app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(
         return res.status(200).json(session.url);
     }
     catch (error) {
-        return res.status(500).json("Couldn't generate stripe session.");
+        return res.status(500).json({ message: "Couldn't generate stripe session.", error });
     }
 }));
 app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

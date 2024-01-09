@@ -1226,7 +1226,7 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
 
     return res.status(200).json(session.url);
   } catch (error) {
-    return res.status(500).json("Couldn't generate stripe session.");
+    return res.status(500).json({message: "Couldn't generate stripe session.", error});
   }
 });
 
