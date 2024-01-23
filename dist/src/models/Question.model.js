@@ -32,6 +32,7 @@ exports.questionSchema = new mongoose_1.Schema({
     explanation: String,
     topic: String,
     subtopic: String,
-    incorrect_explanations: [String]
+    incorrect_explanations: [String],
+    imageUrl: String
 });
 exports.Question = mongoose_1.default.model("Question", exports.questionSchema, "Questions");

@@ -695,6 +695,7 @@ app.get("/questions/:id", (req, res, next) => {
                 _id: question === null || question === void 0 ? void 0 : question._id,
                 question: question === null || question === void 0 ? void 0 : question.question,
                 options: question === null || question === void 0 ? void 0 : question.options,
+                imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl
             };
         }
         else {

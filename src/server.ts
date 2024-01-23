@@ -882,6 +882,7 @@ app.get("/questions/:id", (req, res, next) => {
           _id: question?._id,
           question: question?.question,
           options: question?.options,
+          imageUrl: question?.imageUrl
         };
       } else {
         return res.status(200).json(question);

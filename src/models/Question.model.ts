@@ -7,7 +7,8 @@ export const questionSchema = new Schema({
     explanation: String,
     topic: String,
     subtopic: String,
-    incorrect_explanations: [String]
+    incorrect_explanations: [String],
+    imageUrl: String
 });
 
 export const Question = mongoose.model("Question", questionSchema, "Questions");
