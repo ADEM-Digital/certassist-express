@@ -10,6 +10,7 @@ import { QuestionFilterType, QuestionDataType } from "./types/QuestionTypes";
 import { TestAnalysisDataType, TestDataType } from "./types/TestTypes";
 import mongoose from "mongoose";
 import { Billing } from "./models/Billing.model";
+import { SubscriptionDataType } from "./types/Stripe";
 
 dotenv.config();
 
@@ -882,7 +883,7 @@ app.get("/questions/:id", (req, res, next) => {
           _id: question?._id,
           question: question?.question,
           options: question?.options,
-          imageUrl: question?.imageUrl
+          imageUrl: question?.imageUrl,
         };
       } else {
         return res.status(200).json(question);
@@ -1210,7 +1211,20 @@ app.put("/tests/update-analysis/:id", async (req, res, next) => {
 });
 
 app.post("/create-subscription-checkout-session", async (req, res, next) => {
-  const { priceId } = req.body;
+  const { priceId, isTrial } = req.body;
+
+  let subscription_data: SubscriptionDataType | undefined = {
+    trial_settings: {
+      end_behavior: {
+        missing_payment_method: "cancel",
+      },
+    },
+    trial_period_days: 7,
+  };
+
+  if (!isTrial) {
+    subscription_data = undefined;
+  }
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -1221,40 +1235,66 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
           quantity: 1,
         },
       ],
+      subscription_data,
+      payment_method_collection: "always",
+      custom_text: {
+        submit: {
+          message: isTrial
+            ? "Complete the form to start the 7-day trial. Your card will not be charged at this time. If you cancel the subscription before the trial ends, your credit card will not be charged."
+            : "",
+        },
+      },
       success_url: process.env.STRIPE_SUCCESS_URL,
       cancel_url: process.env.STRIPE_CANCEL_URL,
     });
 
     return res.status(200).json(session.url);
   } catch (error) {
-    return res.status(500).json({message: "Couldn't generate stripe session.", error});
+    return res
+      .status(500)
+      .json({ message: "Couldn't generate stripe session.", error });
   }
 });
 
 app.post("/webhooks/stripe", async (req, res, next) => {
-  const { id, created, data, type } = req.body;
+  const { id, data, type } = req.body;
+  let created = new Date(data.object.created * 1000);
+  let expiresAt = new Date(data.object.created_at * 1000);
+  expiresAt.setDate(expiresAt.getDate() + 30);
 
+  let subscription;
+  try {
+    subscription = await stripe.subscriptions.retrieve(
+      data.object.subscription
+    );
+  } catch (error) {
+    console.log(error);
+  }
+
+  if (subscription) {
+    created = new Date(subscription.current_period_start * 1000);
+    expiresAt = new Date(subscription.current_period_end * 1000);
+  }
+  console.log(type);
   switch (type) {
-    case "checkout.session.completed":
-      let created = new Date(data.object.created * 1000);
-      let expiresAt = new Date(data.object.created * 1000);
-      expiresAt.setDate(expiresAt.getDate() + 30);
-      let billing = {
+    case "invoice.paid":
+      let recurrentBilling = {
         checkoutId: data.object.id,
         amountTotal: data.object.amount_total,
         createdAt: created,
         currency: data.object.currency,
-        customerEmail: data.object.customer_details.email,
-        customerName: data.object.customer_details.name,
+        customerEmail: data.object.customer_email,
+        customerName: data.object.customer_name,
         expiresAt: expiresAt,
-        invoice: data.object.invoice,
-        documentType: data.object.mode,
+        invoice: data.object.id,
+        documentType: "subscription",
         subscriptionId: data.object.subscription,
         status: data.object.status,
+        billing_reason: data.object.billing_reason,
       };
 
       try {
-        let response = await Billing.create(billing);
+        let response = await Billing.create(recurrentBilling);
 
         console.log(response);
         return res.status(200).json("Updated the purchase information.");
@@ -1262,11 +1302,14 @@ app.post("/webhooks/stripe", async (req, res, next) => {
         console.error("Couldn't update the billing information", error);
         return res.status(500).json("Couldn't update the billing information.");
       }
+    default:
+      return res.status(400).json("Event type not supported.");
   }
 });
 
 app.get("/check-subscription/:email", async (req, res, next) => {
   const { email } = req.params;
+  console.log(email);
   const now = new Date();
   try {
     let billings = await Billing.find({
