@@ -1256,6 +1256,35 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
   }
 });
 
+app.post("/create-customer-portal-session", async (req, res, next) => {
+  const { email, return_url } = req.body;
+  try {
+    const customers = await stripe.customers.list({
+      email: email,
+    });
+
+    const customerID = customers.data.length > 0 ? customers.data[0].id : null;
+
+    if (customerID) {
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerID,
+        return_url
+      });
+      
+      return res.status(200).json(session.url);
+      
+    } else {
+      
+      console.log('Customer not found');
+      return res.status(400).json("User not found.")
+    }
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("Couldn't create the stripe portal session.");
+  }
+});
+
 app.post("/webhooks/stripe", async (req, res, next) => {
   const { id, data, type } = req.body;
   let created = new Date(data.object.created * 1000);
