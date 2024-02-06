@@ -22,6 +22,7 @@ const cors_1 = __importDefault(require("cors"));
 const Test_model_1 = require("./models/Test.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const Billing_model_1 = require("./models/Billing.model");
+const tickets_routes_1 = __importDefault(require("./routes/tickets.routes"));
 dotenv_1.default.config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_API_KEY);
 mongodb_1.database;
@@ -1065,6 +1066,7 @@ app.get("/check-subscription/:email", (req, res, next) => __awaiter(void 0, void
         return res.status(500).json("Error while searching for a valid billing.");
     }
 }));
+app.use("/ticketRoutes", tickets_routes_1.default);
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });

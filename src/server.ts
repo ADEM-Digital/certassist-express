@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { Billing } from "./models/Billing.model";
 import { SubscriptionDataType } from "./types/Stripe";
 
+import ticketRouter from "./routes/tickets.routes";
 dotenv.config();
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_API_KEY);
@@ -1352,6 +1353,8 @@ app.get("/check-subscription/:email", async (req, res, next) => {
     return res.status(500).json("Error while searching for a valid billing.");
   }
 });
+
+app.use("/ticketRoutes", ticketRouter)
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
