@@ -11,8 +11,10 @@ import { TestAnalysisDataType, TestDataType } from "./types/TestTypes";
 import mongoose from "mongoose";
 import { Billing } from "./models/Billing.model";
 import { SubscriptionDataType } from "./types/Stripe";
+import emailjs, { EmailJSResponseStatus } from "@emailjs/nodejs";
 
 import ticketRouter from "./routes/tickets.routes";
+import exp from "constants";
 dotenv.config();
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_API_KEY);
@@ -900,7 +902,6 @@ app.get("/questions/:id", (req, res, next) => {
 // User Routes
 app.get("/usersData", (req, res, next) => {
   console.log(req.query.userId);
-  console.log("Ran query");
   UserData.find({ userId: req.query.userId })
     .then((userData) => res.status(200).json(userData))
     .catch((error) => {
@@ -911,11 +912,13 @@ app.get("/usersData", (req, res, next) => {
 
 app.post("/usersData", (req, res, next) => {
   console.log(req.body);
+  const { recipientEmail } = req.body;
   UserData.create({
     ...req.body,
   })
     .then((userData) => {
       console.log(`Created the user data`, userData);
+
       res.status(200).json(userData);
     })
     .catch((error) => {
@@ -1237,12 +1240,13 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
         },
       ],
       subscription_data,
+      locale: "en",
       payment_method_collection: "always",
       custom_text: {
         submit: {
           message: isTrial
             ? "Complete the form to start the 7-day trial. Your card will not be charged at this time. If you cancel the subscription before the trial ends, your credit card will not be charged."
-            : "",
+            : "Complete the form to start your selected subscription. You can cancel your subscription at any time.",
         },
       },
       success_url: process.env.STRIPE_SUCCESS_URL,
@@ -1269,17 +1273,14 @@ app.post("/create-customer-portal-session", async (req, res, next) => {
     if (customerID) {
       const session = await stripe.billingPortal.sessions.create({
         customer: customerID,
-        return_url
+        return_url,
       });
-      
-      return res.status(200).json(session.url);
-      
-    } else {
-      
-      console.log('Customer not found');
-      return res.status(400).json("User not found.")
-    }
 
+      return res.status(200).json(session.url);
+    } else {
+      console.log("Customer not found");
+      return res.status(400).json("User not found.");
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json("Couldn't create the stripe portal session.");
@@ -1326,12 +1327,72 @@ app.post("/webhooks/stripe", async (req, res, next) => {
       try {
         let response = await Billing.create(recurrentBilling);
 
+        if (
+          process.env.EMAIL_JS_SERVICE_ID &&
+          process.env.EMAIL_JS_PURCHASE_TEMPLATE_ID &&
+          process.env.EMAIL_JS_TRIAL_TEMPLATE_ID &&
+          process.env.EMAIL_JS_PUBLIC_KEY &&
+          process.env.EMAIL_JS_PRIVATE_KEY
+        ) {
+          await emailjs.send(
+            process.env.EMAIL_JS_SERVICE_ID,
+            data.object.amount_due === 0 ? process.env.EMAIL_JS_TRIAL_TEMPLATE_ID : process.env.EMAIL_JS_PURCHASE_TEMPLATE_ID,
+            {
+              recipient_email: data.object.customer_email,
+              user_name: data.object.customer_name,
+              order_number: data.object.id,
+              purchase_date: `${created.getMonth() + 1}/${created.getDate()}/${created.getFullYear()}`,
+              product_name: data.object.lines.data[0].plan.nickname,
+              billing_frequency: data.object.lines.data[0].plan.interval[0].toUpperCase() + data.object.lines.data[0].plan.interval.substring(1),
+              amount_paid: `$ ${(data.object.amount_paid / 100).toFixed(2)} ${data.object.currency?.toUpperCase()}`,
+              period_end: `${expiresAt.getMonth() + 1}/${expiresAt.getDate()}/${expiresAt.getFullYear()}`,
+              plan_amount: `$ ${(data.object.lines.data[0].plan.amount / 100).toFixed(2)} ${data.object.currency?.toUpperCase()}`
+            },
+            {
+              publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
+              privateKey: process.env.EMAIL_JS_PRIVATE_KEY,
+            }
+          );
+        }
+
         console.log(response);
         return res.status(200).json("Updated the purchase information.");
       } catch (error) {
         console.error("Couldn't update the billing information", error);
         return res.status(500).json("Couldn't update the billing information.");
       }
+
+    case "customer.subscription.created":
+      const { customer } = data.object;
+
+      try {
+        if (
+          process.env.EMAIL_JS_SERVICE_ID &&
+          process.env.EMAIL_JS_WELCOME_TEMPLATE_ID &&
+          process.env.EMAIL_JS_PUBLIC_KEY &&
+          process.env.EMAIL_JS_PRIVATE_KEY
+        ) {
+          const customerData = await stripe.customers.retrieve(customer);
+
+          await emailjs.send(
+            process.env.EMAIL_JS_SERVICE_ID,
+            process.env.EMAIL_JS_WELCOME_TEMPLATE_ID,
+            { recipient_email: customerData.email },
+            {
+              publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
+              privateKey: process.env.EMAIL_JS_PRIVATE_KEY,
+            }
+          );
+          return res.status(200).json("Successfully set the welcome email");
+        } else {
+          console.log("NO EMAIL JS SERVICE DATA");
+          return res.status(500).json("Failed to send the email");
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      break;
+
     default:
       return res.status(400).json("Event type not supported.");
   }
@@ -1354,7 +1415,7 @@ app.get("/check-subscription/:email", async (req, res, next) => {
   }
 });
 
-app.use("/ticketRoutes", ticketRouter)
+app.use("/ticketRoutes", ticketRouter);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
