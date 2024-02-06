@@ -36,7 +36,7 @@ const allowedOrigins = [
     "https://certassist-client.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://usmle1.certassist.app/",
+    "https://usmle1.certassist.app",
 ];
 const corsOptions = {
     // @ts-ignore
