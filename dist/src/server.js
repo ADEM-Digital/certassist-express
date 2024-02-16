@@ -745,12 +745,25 @@ app.put("/usersData", (req, res, next) => {
 });
 // Tests routes
 app.get("/tests", (req, res, next) => {
-    console.log(req.query.userId);
+    let { page, userId } = req.query;
+    let parsedPage = parseInt(page) || 1;
+    const skip = (parsedPage - 1) * 10;
     Test_model_1.Test.find({
-        userId: req.query.userId,
+        userId
     })
-        .then((tests) => res.status(200).json(tests))
-        .catch((error) => {
+        .sort("-createdAt")
+        .skip(skip)
+        .limit(10)
+        .then((tests) => {
+        Test_model_1.Test.countDocuments({ userId }).then((total) => {
+            res.status(200).json({
+                tests,
+                total,
+                pages: Math.ceil(total / 10),
+                currentPage: parsedPage
+            });
+        });
+    }).catch((error) => {
         console.error("Error while retrieving the tests", error);
         res.status(500).send({ error: "Failed to retrieve the tests." });
     });
@@ -1048,16 +1061,19 @@ app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 
                     process.env.EMAIL_JS_TRIAL_TEMPLATE_ID &&
                     process.env.EMAIL_JS_PUBLIC_KEY &&
                     process.env.EMAIL_JS_PRIVATE_KEY) {
-                    yield nodejs_1.default.send(process.env.EMAIL_JS_SERVICE_ID, data.object.amount_due === 0 ? process.env.EMAIL_JS_TRIAL_TEMPLATE_ID : process.env.EMAIL_JS_PURCHASE_TEMPLATE_ID, {
+                    yield nodejs_1.default.send(process.env.EMAIL_JS_SERVICE_ID, data.object.amount_due === 0
+                        ? process.env.EMAIL_JS_TRIAL_TEMPLATE_ID
+                        : process.env.EMAIL_JS_PURCHASE_TEMPLATE_ID, {
                         recipient_email: data.object.customer_email,
                         user_name: data.object.customer_name,
                         order_number: data.object.id,
                         purchase_date: `${created.getMonth() + 1}/${created.getDate()}/${created.getFullYear()}`,
                         product_name: data.object.lines.data[0].plan.nickname,
-                        billing_frequency: data.object.lines.data[0].plan.interval[0].toUpperCase() + data.object.lines.data[0].plan.interval.substring(1),
+                        billing_frequency: data.object.lines.data[0].plan.interval[0].toUpperCase() +
+                            data.object.lines.data[0].plan.interval.substring(1),
                         amount_paid: `$ ${(data.object.amount_paid / 100).toFixed(2)} ${(_12 = data.object.currency) === null || _12 === void 0 ? void 0 : _12.toUpperCase()}`,
                         period_end: `${expiresAt.getMonth() + 1}/${expiresAt.getDate()}/${expiresAt.getFullYear()}`,
-                        plan_amount: `$ ${(data.object.lines.data[0].plan.amount / 100).toFixed(2)} ${(_13 = data.object.currency) === null || _13 === void 0 ? void 0 : _13.toUpperCase()}`
+                        plan_amount: `$ ${(data.object.lines.data[0].plan.amount / 100).toFixed(2)} ${(_13 = data.object.currency) === null || _13 === void 0 ? void 0 : _13.toUpperCase()}`,
                     }, {
                         publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
                         privateKey: process.env.EMAIL_JS_PRIVATE_KEY,
