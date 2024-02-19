@@ -6,6 +6,8 @@ const userDataSchema = new Schema({
   markedQuestions: [String],
   correctQuestions: [String],
   incorrectQuestions: [String],
+  dashboardTutorial: Boolean,
+  testsTutorial: Boolean
 });
 
 export const UserData = mongoose.model("userData", userDataSchema, "userData");

@@ -31,5 +31,7 @@ const userDataSchema = new mongoose_1.Schema({
     markedQuestions: [String],
     correctQuestions: [String],
     incorrectQuestions: [String],
+    dashboardTutorial: Boolean,
+    testsTutorial: Boolean
 });
 exports.UserData = mongoose_1.default.model("userData", userDataSchema, "userData");

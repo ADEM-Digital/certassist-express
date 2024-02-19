@@ -723,7 +723,6 @@ app.get("/usersData", (req, res, next) => {
 });
 app.post("/usersData", (req, res, next) => {
     console.log(req.body);
-    const { recipientEmail } = req.body;
     UserData_model_1.UserData.create(Object.assign({}, req.body))
         .then((userData) => {
         console.log(`Created the user data`, userData);
@@ -737,6 +736,24 @@ app.post("/usersData", (req, res, next) => {
 app.put("/usersData", (req, res, next) => {
     console.log(req.body);
     UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: req.body.usedQuestions })
+        .then((result) => res.status(200).json(result))
+        .catch((error) => {
+        console.error("Failed to update the user data", error);
+        res.status(500).send({ error: "Failed to update the user data." });
+    });
+});
+app.put("/usersData/dashboardTutorial", (req, res, next) => {
+    console.log(req.body);
+    UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: { dashboardTutorial: req.body.dashboardTutorial } })
+        .then((result) => res.status(200).json(result))
+        .catch((error) => {
+        console.error("Failed to update the user data", error);
+        res.status(500).send({ error: "Failed to update the user data." });
+    });
+});
+app.put("/usersData/testsTutorial", (req, res, next) => {
+    console.log(req.body);
+    UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: { testsTutorial: req.body.testsTutorial } })
         .then((result) => res.status(200).json(result))
         .catch((error) => {
         console.error("Failed to update the user data", error);
