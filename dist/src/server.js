@@ -1022,6 +1022,7 @@ app.post("/create-customer-portal-session", (req, res, next) => __awaiter(void 0
         const customerID = customers.data.length > 0 ? customers.data[0].id : null;
         if (customerID) {
             const session = yield stripe.billingPortal.sessions.create({
+                locale: "en",
                 customer: customerID,
                 return_url,
             });

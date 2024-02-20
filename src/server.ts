@@ -1316,6 +1316,7 @@ app.post("/create-customer-portal-session", async (req, res, next) => {
 
     if (customerID) {
       const session = await stripe.billingPortal.sessions.create({
+        locale: "en",
         customer: customerID,
         return_url,
       });
