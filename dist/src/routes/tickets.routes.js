@@ -100,12 +100,13 @@ router.post("/create-content-support-ticket", upload.single("image"), (req, res,
                 }
                 ticketData.cf.cf_image_url = data.Location;
                 ticketResponse = yield createSupportTicket(ticketData);
+                return res.status(200).json(ticketResponse);
             }));
         }
         if (!req.file) {
             ticketResponse = yield createSupportTicket(ticketData);
+            return res.status(200).json(ticketResponse);
         }
-        return res.status(200).json(ticketResponse);
     }
     catch (error) {
         // @ts-ignore

@@ -137,7 +137,7 @@ router.post(
 
             ticketData.cf.cf_image_url = data.Location;  
             ticketResponse = await createSupportTicket(ticketData);
-
+            return res.status(200).json(ticketResponse);
 
           }
         );
@@ -145,9 +145,10 @@ router.post(
 
       if (!req.file) {
         ticketResponse = await createSupportTicket(ticketData);
+        return res.status(200).json(ticketResponse);
       }
 
-      return res.status(200).json(ticketResponse);
+      
 
       
     } catch (error) {
