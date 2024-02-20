@@ -85,25 +85,26 @@ router.post("/create-content-support-ticket", upload.single("image"), (req, res,
         }
     };
     try {
+        let ticketResponse;
         if (req.file) {
             s3.upload({
                 Bucket: "certassist",
                 Key: (_a = req.file) === null || _a === void 0 ? void 0 : _a.originalname,
                 Body: req.file.buffer,
-            }, (err, data) => {
+            }, (err, data) => __awaiter(void 0, void 0, void 0, function* () {
                 if (err) {
                     return res
                         .status(500)
                         .json("Failed to upload the image. Try again.");
                 }
                 ticketData.cf.cf_image_url = data.Location;
-                createSupportTicket(ticketData);
-            });
+                ticketResponse = yield createSupportTicket(ticketData);
+            }));
         }
         if (!req.file) {
-            createSupportTicket(ticketData);
+            ticketResponse = yield createSupportTicket(ticketData);
         }
-        return res.status(200).json("Ticket created successfully");
+        return res.status(200).json(ticketResponse);
     }
     catch (error) {
         // @ts-ignore

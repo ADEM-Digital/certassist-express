@@ -119,6 +119,7 @@ router.post(
     };
 
     try {
+      let ticketResponse;
       if (req.file) {
         s3.upload(
           {
@@ -126,7 +127,7 @@ router.post(
             Key: req.file?.originalname,
             Body: req.file.buffer,
           },
-          (err, data) => {
+          async (err, data) => {
             if (err) {
               return res
                 .status(500)
@@ -134,15 +135,20 @@ router.post(
             }
 
             ticketData.cf.cf_image_url = data.Location;  
-            createSupportTicket(ticketData);
+            ticketResponse = await createSupportTicket(ticketData);
+
+
           }
         );
       }
+
       if (!req.file) {
-        createSupportTicket(ticketData);
+        ticketResponse = await createSupportTicket(ticketData);
       }
 
-      return res.status(200).json("Ticket created successfully");
+      return res.status(200).json(ticketResponse);
+
+      
     } catch (error) {
       // @ts-ignore
       console.log(error.response.data);
