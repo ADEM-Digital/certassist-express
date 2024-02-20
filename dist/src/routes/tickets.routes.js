@@ -65,6 +65,7 @@ function createSupportTicket(ticketData) {
         }
         catch (error) {
             console.log(error);
+            return error;
         }
     });
 }

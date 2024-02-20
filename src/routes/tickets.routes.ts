@@ -78,6 +78,7 @@ async function createSupportTicket(ticketData: TicketDataType) {
     return response.data;
   } catch (error) {
     console.log(error);
+    return error
   }
 }
 
