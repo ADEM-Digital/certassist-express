@@ -1259,7 +1259,7 @@ app.put("/tests/update-analysis/:id", async (req, res, next) => {
 });
 
 app.post("/create-subscription-checkout-session", async (req, res, next) => {
-  const { priceId, isTrial } = req.body;
+  const { priceId, isTrial, email } = req.body;
 
   let subscription_data: SubscriptionDataType | undefined = {
     trial_settings: {
@@ -1286,6 +1286,7 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
       subscription_data,
       locale: "en",
       payment_method_collection: "always",
+      customer_email: email,
       custom_text: {
         submit: {
           message: isTrial

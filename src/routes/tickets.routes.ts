@@ -159,4 +159,72 @@ router.post(
   }
 );
 
+router.post(
+  "/create-general-support-ticket",
+  upload.single("image"),
+  async (req, res, next) => {
+    const {
+      problemType,
+      description, 
+      userData,
+    }: {
+      problemType: string;
+      description: string;
+      userData: string;
+    } = req.body;
+
+
+
+
+    const ticketData: TicketDataType = {
+      subject: `General Support - ${problemType}`,
+      description: description,
+      departmentId: "950940000000388037",
+      channel: "Web",
+      contact: JSON.parse(userData) as { firstName: string; lastName: string; email: string },
+      cf: {
+        cf_question_problem: problemType
+      }
+    };
+
+    try {
+      let ticketResponse;
+      if (req.file) {
+        s3.upload(
+          {
+            Bucket: "certassist",
+            Key: req.file?.originalname,
+            Body: req.file.buffer,
+          },
+          async (err, data) => {
+            if (err) {
+              return res
+                .status(500)
+                .json("Failed to upload the image. Try again.");
+            }
+
+            ticketData.cf.cf_image_url = data.Location;  
+            ticketResponse = await createSupportTicket(ticketData);
+            return res.status(200).json(ticketResponse);
+
+          }
+        );
+      }
+
+      if (!req.file) {
+        ticketResponse = await createSupportTicket(ticketData);
+        return res.status(200).json(ticketResponse);
+      }
+
+      
+
+      
+    } catch (error) {
+      // @ts-ignore
+      console.log(error.response.data);
+      return res.status(500).json("Failed to create the ticket.");
+    }
+  }
+);
+
 export default router;

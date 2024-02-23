@@ -971,7 +971,7 @@ app.put("/tests/update-analysis/:id", (req, res, next) => __awaiter(void 0, void
     }
 }));
 app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { priceId, isTrial } = req.body;
+    const { priceId, isTrial, email } = req.body;
     let subscription_data = {
         trial_settings: {
             end_behavior: {
@@ -995,6 +995,7 @@ app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(
             subscription_data,
             locale: "en",
             payment_method_collection: "always",
+            customer_email: email,
             custom_text: {
                 submit: {
                     message: isTrial
