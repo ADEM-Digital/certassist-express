@@ -691,15 +691,32 @@ app.get("/questions/:id", (req, res, next) => {
         _id: id,
     })
         .then((question) => {
+        var _a, _b, _c, _d;
         console.log(question);
         let questionObject = {};
         if (req.query.testStatus !== "completed") {
-            questionObject = {
-                _id: question === null || question === void 0 ? void 0 : question._id,
-                question: question === null || question === void 0 ? void 0 : question.question,
-                options: question === null || question === void 0 ? void 0 : question.options,
-                imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
-            };
+            if (req.query.selectedLanguage === "es") {
+                questionObject = {
+                    _id: question === null || question === void 0 ? void 0 : question._id,
+                    question: question === null || question === void 0 ? void 0 : question.question,
+                    options: question === null || question === void 0 ? void 0 : question.options,
+                    imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
+                    internationalization: {
+                        es: {
+                            question: (_b = (_a = question === null || question === void 0 ? void 0 : question.internationalization) === null || _a === void 0 ? void 0 : _a.es) === null || _b === void 0 ? void 0 : _b.question,
+                            options: (_d = (_c = question === null || question === void 0 ? void 0 : question.internationalization) === null || _c === void 0 ? void 0 : _c.es) === null || _d === void 0 ? void 0 : _d.question,
+                        },
+                    },
+                };
+            }
+            else {
+                questionObject = {
+                    _id: question === null || question === void 0 ? void 0 : question._id,
+                    question: question === null || question === void 0 ? void 0 : question.question,
+                    options: question === null || question === void 0 ? void 0 : question.options,
+                    imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
+                };
+            }
         }
         else {
             return res.status(200).json(question);
@@ -766,7 +783,7 @@ app.get("/tests", (req, res, next) => {
     let parsedPage = parseInt(page) || 1;
     const skip = (parsedPage - 1) * 10;
     Test_model_1.Test.find({
-        userId
+        userId,
     })
         .sort("-createdAt")
         .skip(skip)
@@ -777,10 +794,11 @@ app.get("/tests", (req, res, next) => {
                 tests,
                 total,
                 pages: Math.ceil(total / 10),
-                currentPage: parsedPage
+                currentPage: parsedPage,
             });
         });
-    }).catch((error) => {
+    })
+        .catch((error) => {
         console.error("Error while retrieving the tests", error);
         res.status(500).send({ error: "Failed to retrieve the tests." });
     });

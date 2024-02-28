@@ -33,6 +33,17 @@ exports.questionSchema = new mongoose_1.Schema({
     topic: String,
     subtopic: String,
     incorrect_explanations: [String],
-    imageUrl: String
+    imageUrl: String,
+    internationalization: {
+        "es": {
+            question: String,
+            options: [String],
+            correct_answer: String,
+            explanation: String,
+            topic: String,
+            subtopic: String,
+            incorrect_explanations: [String],
+        }
+    }
 });
 exports.Question = mongoose_1.default.model("Question", exports.questionSchema, "Questions");

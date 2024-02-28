@@ -883,12 +883,27 @@ app.get("/questions/:id", (req, res, next) => {
       console.log(question);
       let questionObject = {};
       if (req.query.testStatus !== "completed") {
-        questionObject = {
-          _id: question?._id,
-          question: question?.question,
-          options: question?.options,
-          imageUrl: question?.imageUrl,
-        };
+        if (req.query.selectedLanguage === "es") {
+          questionObject = {
+            _id: question?._id,
+            question: question?.question,
+            options: question?.options,
+            imageUrl: question?.imageUrl,
+            internationalization: {
+              es: {
+                question: question?.internationalization?.es?.question,
+                options: question?.internationalization?.es?.question,
+              },
+            },
+          };
+        } else {
+          questionObject = {
+            _id: question?._id,
+            question: question?.question,
+            options: question?.options,
+            imageUrl: question?.imageUrl,
+          };
+        }
       } else {
         return res.status(200).json(question);
       }
@@ -945,7 +960,7 @@ app.put("/usersData/dashboardTutorial", (req, res, next) => {
   console.log(req.body);
   UserData.updateOne(
     { _id: req.body.userDataId },
-    { $set: {dashboardTutorial: req.body.dashboardTutorial} }
+    { $set: { dashboardTutorial: req.body.dashboardTutorial } }
   )
     .then((result) => res.status(200).json(result))
     .catch((error) => {
@@ -958,7 +973,7 @@ app.put("/usersData/testsTutorial", (req, res, next) => {
   console.log(req.body);
   UserData.updateOne(
     { _id: req.body.userDataId },
-    { $set: {testsTutorial: req.body.testsTutorial} }
+    { $set: { testsTutorial: req.body.testsTutorial } }
   )
     .then((result) => res.status(200).json(result))
     .catch((error) => {
@@ -976,22 +991,22 @@ app.get("/tests", (req, res, next) => {
   const skip = (parsedPage - 1) * 10;
 
   Test.find({
-    userId
+    userId,
   })
     .sort("-createdAt")
     .skip(skip)
     .limit(10)
     .then((tests) => {
-      Test.countDocuments({userId}).then((total) => {
+      Test.countDocuments({ userId }).then((total) => {
         res.status(200).json({
           tests,
           total,
           pages: Math.ceil(total / 10),
-          currentPage: parsedPage
-        })
-      })
-    }
-    ).catch((error) => {
+          currentPage: parsedPage,
+        });
+      });
+    })
+    .catch((error) => {
       console.error("Error while retrieving the tests", error);
       res.status(500).send({ error: "Failed to retrieve the tests." });
     });
