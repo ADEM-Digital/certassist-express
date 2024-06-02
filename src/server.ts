@@ -298,51 +298,51 @@ app.post("/questions/ids", async (req, res, next) => {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...filter["_id"].$in,
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...filter["_id"].$in,
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...filter["_id"].$in,
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...filter["_id"].$in,
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     } else if (selectedAnswerStatus === "correct") {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...filter["_id"].$in,
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...filter["_id"].$in,
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...filter["_id"].$in,
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...filter["_id"].$in,
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     }
   }
@@ -354,28 +354,28 @@ app.post("/questions/ids", async (req, res, next) => {
           $nin: filter["_id"]?.$nin ? [...filter._id.$nin] : undefined,
           $in: filter["_id"]?.$in
             ? [
-                ...filter["_id"].$in,
-                ...userData.markedQuestions.map((questionId) =>
-                  mongoose.Types.ObjectId.createFromHexString(questionId)
-                ),
-              ]
-            : userData.markedQuestions.map((questionId) =>
+              ...filter["_id"].$in,
+              ...userData.markedQuestions.map((questionId) =>
                 mongoose.Types.ObjectId.createFromHexString(questionId)
               ),
+            ]
+            : userData.markedQuestions.map((questionId) =>
+              mongoose.Types.ObjectId.createFromHexString(questionId)
+            ),
         };
       } else if (selectedMarkStatus === "unmarked") {
         filter["_id"] = {
           $in: filter["_id"]?.$in ? [...filter._id.$in] : undefined,
           $nin: filter["_id"]?.$nin
             ? [
-                ...filter["_id"].$nin,
-                ...userData.markedQuestions.map((questionId) =>
-                  mongoose.Types.ObjectId.createFromHexString(questionId)
-                ),
-              ]
-            : userData.markedQuestions.map((questionId) =>
+              ...filter["_id"].$nin,
+              ...userData.markedQuestions.map((questionId) =>
                 mongoose.Types.ObjectId.createFromHexString(questionId)
               ),
+            ]
+            : userData.markedQuestions.map((questionId) =>
+              mongoose.Types.ObjectId.createFromHexString(questionId)
+            ),
         };
       }
     }
@@ -480,47 +480,47 @@ app.post("/availablequestions", async (req, res, next) => {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     } else if (selectedAnswerStatus === "correct") {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     }
   }
@@ -533,13 +533,13 @@ app.post("/availablequestions", async (req, res, next) => {
             $nin: filter["_id"]?.$nin ? [...filter._id.$nin] : undefined,
             $in: filter["_id"]?.$in
               ? [
-                  ...userData.markedQuestions.map((questionId) =>
-                    mongoose.Types.ObjectId.createFromHexString(questionId)
-                  ),
-                ]
-              : userData.markedQuestions.map((questionId) =>
+                ...userData.markedQuestions.map((questionId) =>
                   mongoose.Types.ObjectId.createFromHexString(questionId)
                 ),
+              ]
+              : userData.markedQuestions.map((questionId) =>
+                mongoose.Types.ObjectId.createFromHexString(questionId)
+              ),
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
@@ -553,13 +553,13 @@ app.post("/availablequestions", async (req, res, next) => {
             $in: filter["_id"]?.$in ? [...filter._id.$in] : undefined,
             $nin: filter["_id"]?.$nin
               ? [
-                  ...userData.markedQuestions.map((questionId) =>
-                    mongoose.Types.ObjectId.createFromHexString(questionId)
-                  ),
-                ]
-              : userData.markedQuestions.map((questionId) =>
+                ...userData.markedQuestions.map((questionId) =>
                   mongoose.Types.ObjectId.createFromHexString(questionId)
                 ),
+              ]
+              : userData.markedQuestions.map((questionId) =>
+                mongoose.Types.ObjectId.createFromHexString(questionId)
+              ),
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
@@ -620,8 +620,8 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
   if (userData?.usedQuestions) {
     console.log(
       selectedQuestionStatus &&
-        selectedQuestionStatus !== "all" &&
-        userData?.usedQuestions.length
+      selectedQuestionStatus !== "all" &&
+      userData?.usedQuestions.length
     );
   }
 
@@ -656,47 +656,47 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.incorrectQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.incorrectQuestions.map((questionId) =>
+            ...userData?.incorrectQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.incorrectQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     } else if (selectedAnswerStatus === "correct") {
       if (filter["_id"]) {
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       } else {
         filter["_id"] = {};
         filter["_id"]["$in"] = filter["_id"]?.$in
           ? [
-              ...userData?.correctQuestions.map((questionId) =>
-                mongoose.Types.ObjectId.createFromHexString(questionId)
-              ),
-            ]
-          : userData?.correctQuestions.map((questionId) =>
+            ...userData?.correctQuestions.map((questionId) =>
               mongoose.Types.ObjectId.createFromHexString(questionId)
-            );
+            ),
+          ]
+          : userData?.correctQuestions.map((questionId) =>
+            mongoose.Types.ObjectId.createFromHexString(questionId)
+          );
       }
     }
   }
@@ -709,13 +709,13 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
             $nin: filter["_id"]?.$nin ? [...filter._id.$nin] : undefined,
             $in: filter["_id"]?.$in
               ? [
-                  ...userData.markedQuestions.map((questionId) =>
-                    mongoose.Types.ObjectId.createFromHexString(questionId)
-                  ),
-                ]
-              : userData.markedQuestions.map((questionId) =>
+                ...userData.markedQuestions.map((questionId) =>
                   mongoose.Types.ObjectId.createFromHexString(questionId)
                 ),
+              ]
+              : userData.markedQuestions.map((questionId) =>
+                mongoose.Types.ObjectId.createFromHexString(questionId)
+              ),
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
@@ -731,13 +731,13 @@ app.post("/availableQuestionOptions", async (req, res, next) => {
             $in: filter["_id"]?.$in ? [...filter._id.$in] : undefined,
             $nin: filter["_id"]?.$nin
               ? [
-                  ...userData.markedQuestions.map((questionId) =>
-                    mongoose.Types.ObjectId.createFromHexString(questionId)
-                  ),
-                ]
-              : userData.markedQuestions.map((questionId) =>
+                ...userData.markedQuestions.map((questionId) =>
                   mongoose.Types.ObjectId.createFromHexString(questionId)
                 ),
+              ]
+              : userData.markedQuestions.map((questionId) =>
+                mongoose.Types.ObjectId.createFromHexString(questionId)
+              ),
           };
         } else if (filter._id?.$in) {
           let filteredIds = filter._id.$in.filter((questionId) =>
@@ -929,21 +929,21 @@ app.get("/usersData", (req, res, next) => {
     });
 });
 
-app.post("/usersData", (req, res, next) => {
-  console.log(req.body);
-
-  UserData.create({
-    ...req.body,
-  })
-    .then((userData) => {
-      console.log(`Created the user data`, userData);
-
-      res.status(200).json(userData);
+app.post("/usersData", async (req, res, next) => {
+  const now = new Date();
+  try {
+    const userData = UserData.create({
+      ...req.body,
     })
-    .catch((error) => {
-      console.error("Error while creating the user data", error);
-      res.status(500).send({ error: "Failed to create the user data." });
-    });
+
+    console.log(`Created the user data`, userData);
+
+    res.status(200).json(userData);
+
+  } catch (error) {
+    console.error("Error while creating the user data", error);
+    res.status(500).send({ error: "Failed to create the user data." });
+  }
 });
 
 app.put("/usersData", (req, res, next) => {
@@ -972,7 +972,7 @@ app.put("/usersData/dashboardTutorial", (req, res, next) => {
     });
 });
 
-app.put("/usersData/testsTutorial", (req, res, next) => {
+app.put("/usersData/  ", (req, res, next) => {
   console.log(req.body);
   UserData.updateOne(
     { _id: req.body.userDataId },
@@ -1112,62 +1112,62 @@ app.put("/gradetests/:id", async (req, res, next) => {
     let userDataUpdate = {
       usedQuestions: userData?.usedQuestions
         ? Array.from(
-            new Set([
-              ...userData.usedQuestions,
-              ...test.questions.map((question) => question.id),
-            ])
-          )
+          new Set([
+            ...userData.usedQuestions,
+            ...test.questions.map((question) => question.id),
+          ])
+        )
         : Array.from(
-            new Set([...test.questions.map((question) => question.id)])
-          ),
+          new Set([...test.questions.map((question) => question.id)])
+        ),
       correctQuestions: userData?.correctQuestions
         ? Array.from(
-            new Set([
-              ...userData.correctQuestions,
-              ...test.questions
-                .filter((question) => question.correct === 1)
-                .map((question) => question.id),
-            ])
-          )
+          new Set([
+            ...userData.correctQuestions,
+            ...test.questions
+              .filter((question) => question.correct === 1)
+              .map((question) => question.id),
+          ])
+        )
         : Array.from(
-            new Set([
-              ...test.questions
-                .filter((question) => question.correct === 1)
-                .map((question) => question.id),
-            ])
-          ),
+          new Set([
+            ...test.questions
+              .filter((question) => question.correct === 1)
+              .map((question) => question.id),
+          ])
+        ),
       incorrectQuestions: userData?.incorrectQuestions
         ? Array.from(
-            new Set([
-              ...userData.incorrectQuestions,
-              ...test.questions
-                .filter((question) => question.correct === 0)
-                .map((question) => question.id),
-            ])
-          )
+          new Set([
+            ...userData.incorrectQuestions,
+            ...test.questions
+              .filter((question) => question.correct === 0)
+              .map((question) => question.id),
+          ])
+        )
         : Array.from(
-            new Set([
-              ...test.questions
-                .filter((question) => question.correct === 0)
-                .map((question) => question.id),
-            ])
-          ),
+          new Set([
+            ...test.questions
+              .filter((question) => question.correct === 0)
+              .map((question) => question.id),
+          ])
+        ),
       markedQuestions: userData?.markedQuestions
         ? Array.from(
-            new Set([
-              ...userData.markedQuestions,
-              ...test.questions
-                .filter((question) => question.marked === true)
-                .map((question) => question.id),
-            ])
-          )
+          new Set([
+            ...userData.markedQuestions,
+            ...test.questions
+              .filter((question) => question.marked === true)
+              .map((question) => question.id),
+          ])
+        )
         : Array.from(
-            new Set([
-              ...test.questions
-                .filter((question) => question.marked === true)
-                .map((question) => question.id),
-            ])
-          ),
+          new Set([
+            ...test.questions
+              .filter((question) => question.marked === true)
+              .map((question) => question.id),
+          ])
+        ),
     };
 
     let userDataUpdateResult = await UserData.updateOne(
@@ -1370,7 +1370,7 @@ app.post("/webhooks/stripe", async (req, res, next) => {
     created = new Date(subscription.current_period_start * 1000);
     expiresAt = new Date(subscription.current_period_end * 1000);
   }
-  console.log(type);
+  console.log(subscription);
   switch (type) {
     case "invoice.paid":
       let recurrentBilling = {
@@ -1386,6 +1386,7 @@ app.post("/webhooks/stripe", async (req, res, next) => {
         subscriptionId: data.object.subscription,
         status: data.object.status,
         billing_reason: data.object.billing_reason,
+        isTrial: subscription.status === "trialing" ? true : false
       };
 
       try {
@@ -1407,9 +1408,8 @@ app.post("/webhooks/stripe", async (req, res, next) => {
               recipient_email: data.object.customer_email,
               user_name: data.object.customer_name,
               order_number: data.object.id,
-              purchase_date: `${
-                created.getMonth() + 1
-              }/${created.getDate()}/${created.getFullYear()}`,
+              purchase_date: `${created.getMonth() + 1
+                }/${created.getDate()}/${created.getFullYear()}`,
               product_name: data.object.lines.data[0].plan.nickname,
               billing_frequency:
                 data.object.lines.data[0].plan.interval[0].toUpperCase() +
@@ -1417,9 +1417,8 @@ app.post("/webhooks/stripe", async (req, res, next) => {
               amount_paid: `$ ${(data.object.amount_paid / 100).toFixed(
                 2
               )} ${data.object.currency?.toUpperCase()}`,
-              period_end: `${
-                expiresAt.getMonth() + 1
-              }/${expiresAt.getDate()}/${expiresAt.getFullYear()}`,
+              period_end: `${expiresAt.getMonth() + 1
+                }/${expiresAt.getDate()}/${expiresAt.getFullYear()}`,
               plan_amount: `$ ${(
                 data.object.lines.data[0].plan.amount / 100
               ).toFixed(2)} ${data.object.currency?.toUpperCase()}`,

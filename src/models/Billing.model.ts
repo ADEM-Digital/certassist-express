@@ -13,6 +13,7 @@ export const billingSchema = new Schema({
   customerName: String,
   createdAt: Date,
   expiresAt: Date,
+  isTrial: Boolean
 });
 
 export const Billing = mongoose.model("Billing", billingSchema, "billings");

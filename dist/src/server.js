@@ -740,18 +740,18 @@ app.get("/usersData", (req, res, next) => {
         res.status(500).send({ error: "Failed to retrieve the user data." });
     });
 });
-app.post("/usersData", (req, res, next) => {
-    console.log(req.body);
-    UserData_model_1.UserData.create(Object.assign({}, req.body))
-        .then((userData) => {
+app.post("/usersData", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const now = new Date();
+    try {
+        const userData = UserData_model_1.UserData.create(Object.assign({}, req.body));
         console.log(`Created the user data`, userData);
         res.status(200).json(userData);
-    })
-        .catch((error) => {
+    }
+    catch (error) {
         console.error("Error while creating the user data", error);
         res.status(500).send({ error: "Failed to create the user data." });
-    });
-});
+    }
+}));
 app.put("/usersData", (req, res, next) => {
     console.log(req.body);
     UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: req.body.usedQuestions })
@@ -770,7 +770,7 @@ app.put("/usersData/dashboardTutorial", (req, res, next) => {
         res.status(500).send({ error: "Failed to update the user data." });
     });
 });
-app.put("/usersData/testsTutorial", (req, res, next) => {
+app.put("/usersData/  ", (req, res, next) => {
     console.log(req.body);
     UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: { testsTutorial: req.body.testsTutorial } })
         .then((result) => res.status(200).json(result))
@@ -1076,7 +1076,7 @@ app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 
         created = new Date(subscription.current_period_start * 1000);
         expiresAt = new Date(subscription.current_period_end * 1000);
     }
-    console.log(type);
+    console.log(subscription);
     switch (type) {
         case "invoice.paid":
             let recurrentBilling = {
@@ -1092,6 +1092,7 @@ app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 
                 subscriptionId: data.object.subscription,
                 status: data.object.status,
                 billing_reason: data.object.billing_reason,
+                isTrial: subscription.status === "trialing" ? true : false
             };
             try {
                 let response = yield Billing_model_1.Billing.create(recurrentBilling);

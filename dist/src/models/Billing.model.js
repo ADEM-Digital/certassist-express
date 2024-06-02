@@ -37,5 +37,6 @@ exports.billingSchema = new mongoose_1.Schema({
     customerName: String,
     createdAt: Date,
     expiresAt: Date,
+    isTrial: Boolean
 });
 exports.Billing = mongoose_1.default.model("Billing", exports.billingSchema, "billings");

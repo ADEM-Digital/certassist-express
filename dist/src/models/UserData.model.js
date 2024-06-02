@@ -27,11 +27,13 @@ exports.UserData = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const userDataSchema = new mongoose_1.Schema({
     userId: String,
+    email: String,
     usedQuestions: [String],
     markedQuestions: [String],
     correctQuestions: [String],
     incorrectQuestions: [String],
     dashboardTutorial: Boolean,
-    testsTutorial: Boolean
+    testsTutorial: Boolean,
+    isTrial: Boolean
 });
 exports.UserData = mongoose_1.default.model("userData", userDataSchema, "userData");
