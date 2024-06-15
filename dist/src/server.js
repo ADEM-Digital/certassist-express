@@ -1014,12 +1014,12 @@ app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(
             ],
             subscription_data,
             locale: "en",
-            payment_method_collection: "always",
+            payment_method_collection: "if_required",
             customer_email: email,
             custom_text: {
                 submit: {
                     message: isTrial
-                        ? "Complete the form to start the 7-day trial. Your card will not be charged at this time. If you cancel the subscription before the trial ends, your credit card will not be charged."
+                        ? "Complete the form to start the 7-day trial. You don't need to provide a credit card at this time. After the trial ends you will need to provide a payment method to continue using Certassist."
                         : "Complete the form to start your selected subscription. You can cancel your subscription at any time.",
                 },
             },
