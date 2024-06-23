@@ -770,7 +770,7 @@ app.put("/usersData/dashboardTutorial", (req, res, next) => {
         res.status(500).send({ error: "Failed to update the user data." });
     });
 });
-app.put("/usersData/  ", (req, res, next) => {
+app.put("/usersData/testsTutorial", (req, res, next) => {
     console.log(req.body);
     UserData_model_1.UserData.updateOne({ _id: req.body.userDataId }, { $set: { testsTutorial: req.body.testsTutorial } })
         .then((result) => res.status(200).json(result))
