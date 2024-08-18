@@ -883,30 +883,21 @@ app.get("/questions/:id", (req, res, next) => {
     _id: id,
   })
     .then((question) => {
-      console.log(question);
+
       let questionObject = {};
       if (req.query.testStatus !== "completed") {
-        if (req.query.selectedLanguage === "es") {
-          questionObject = {
-            _id: question?._id,
-            question: question?.question,
-            options: question?.options,
-            imageUrl: question?.imageUrl,
-            internationalization: {
-              es: {
-                question: question?.internationalization?.es?.question,
-                options: question?.internationalization?.es?.question,
-              },
+        questionObject = {
+          _id: question?._id,
+          question: question?.question,
+          options: question?.options,
+          imageUrl: question?.imageUrl,
+          internationalization: {
+            es: {
+              question: question?.internationalization?.es?.question,
+              options: question?.internationalization?.es?.options,
             },
-          };
-        } else {
-          questionObject = {
-            _id: question?._id,
-            question: question?.question,
-            options: question?.options,
-            imageUrl: question?.imageUrl,
-          };
-        }
+          },
+        };
       } else {
         return res.status(200).json(question);
       }
@@ -1074,7 +1065,7 @@ app.put("/gradetests/:id", async (req, res, next) => {
   let test: TestDataType = req.body;
   test.testStatus = "completed";
 
-  let questionsIds = test.questions.map((question) => question.id);
+  let questionsIds = test.questions?.map((question) => question.id);
   let sourceQuestions: QuestionDataType[] = [];
 
   try {
@@ -1084,7 +1075,7 @@ app.put("/gradetests/:id", async (req, res, next) => {
     return res.status(500).json("Error updating the test.");
   }
 
-  test.questions.forEach((question, index) => {
+  test.questions?.forEach((question, index) => {
     let questionData = sourceQuestions.find((sourceQuestion) => {
       return question.id === sourceQuestion._id.toString();
     });
@@ -1097,7 +1088,7 @@ app.put("/gradetests/:id", async (req, res, next) => {
   });
 
   test.grade =
-    (test.questions.reduce(
+    (test.questions?.reduce(
       (acc, currVal) =>
         currVal.correct === null ? acc + 0 : acc + currVal.correct,
       0
