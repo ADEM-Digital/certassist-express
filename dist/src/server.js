@@ -694,31 +694,20 @@ app.get("/questions/:id", (req, res, next) => {
     })
         .then((question) => {
         var _a, _b, _c, _d;
-        console.log(question);
         let questionObject = {};
         if (req.query.testStatus !== "completed") {
-            if (req.query.selectedLanguage === "es") {
-                questionObject = {
-                    _id: question === null || question === void 0 ? void 0 : question._id,
-                    question: question === null || question === void 0 ? void 0 : question.question,
-                    options: question === null || question === void 0 ? void 0 : question.options,
-                    imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
-                    internationalization: {
-                        es: {
-                            question: (_b = (_a = question === null || question === void 0 ? void 0 : question.internationalization) === null || _a === void 0 ? void 0 : _a.es) === null || _b === void 0 ? void 0 : _b.question,
-                            options: (_d = (_c = question === null || question === void 0 ? void 0 : question.internationalization) === null || _c === void 0 ? void 0 : _c.es) === null || _d === void 0 ? void 0 : _d.question,
-                        },
+            questionObject = {
+                _id: question === null || question === void 0 ? void 0 : question._id,
+                question: question === null || question === void 0 ? void 0 : question.question,
+                options: question === null || question === void 0 ? void 0 : question.options,
+                imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
+                internationalization: {
+                    es: {
+                        question: (_b = (_a = question === null || question === void 0 ? void 0 : question.internationalization) === null || _a === void 0 ? void 0 : _a.es) === null || _b === void 0 ? void 0 : _b.question,
+                        options: (_d = (_c = question === null || question === void 0 ? void 0 : question.internationalization) === null || _c === void 0 ? void 0 : _c.es) === null || _d === void 0 ? void 0 : _d.options,
                     },
-                };
-            }
-            else {
-                questionObject = {
-                    _id: question === null || question === void 0 ? void 0 : question._id,
-                    question: question === null || question === void 0 ? void 0 : question.question,
-                    options: question === null || question === void 0 ? void 0 : question.options,
-                    imageUrl: question === null || question === void 0 ? void 0 : question.imageUrl,
-                };
-            }
+                },
+            };
         }
         else {
             return res.status(200).json(question);
@@ -848,10 +837,11 @@ app.put("/tests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _12, _13, _14;
     let { id } = req.params;
     let test = req.body;
     test.testStatus = "completed";
-    let questionsIds = test.questions.map((question) => question.id);
+    let questionsIds = (_12 = test.questions) === null || _12 === void 0 ? void 0 : _12.map((question) => question.id);
     let sourceQuestions = [];
     try {
         sourceQuestions = yield Question_model_1.Question.find({ _id: { $in: questionsIds } });
@@ -860,7 +850,7 @@ app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0,
         console.log("Error retrieving source questions", error);
         return res.status(500).json("Error updating the test.");
     }
-    test.questions.forEach((question, index) => {
+    (_13 = test.questions) === null || _13 === void 0 ? void 0 : _13.forEach((question, index) => {
         let questionData = sourceQuestions.find((sourceQuestion) => {
             return question.id === sourceQuestion._id.toString();
         });
@@ -871,7 +861,7 @@ app.put("/gradetests/:id", (req, res, next) => __awaiter(void 0, void 0, void 0,
         }
     });
     test.grade =
-        (test.questions.reduce((acc, currVal) => currVal.correct === null ? acc + 0 : acc + currVal.correct, 0) /
+        (((_14 = test.questions) === null || _14 === void 0 ? void 0 : _14.reduce((acc, currVal) => currVal.correct === null ? acc + 0 : acc + currVal.correct, 0)) /
             test.questionCount) *
             100;
     try {
@@ -1060,7 +1050,7 @@ app.post("/create-customer-portal-session", (req, res, next) => __awaiter(void 0
     }
 }));
 app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _12, _13;
+    var _15, _16;
     const { id, data, type } = req.body;
     let created = new Date(data.object.created * 1000);
     let expiresAt = new Date(data.object.created_at * 1000);
@@ -1111,9 +1101,9 @@ app.post("/webhooks/stripe", (req, res, next) => __awaiter(void 0, void 0, void 
                         product_name: data.object.lines.data[0].plan.nickname,
                         billing_frequency: data.object.lines.data[0].plan.interval[0].toUpperCase() +
                             data.object.lines.data[0].plan.interval.substring(1),
-                        amount_paid: `$ ${(data.object.amount_paid / 100).toFixed(2)} ${(_12 = data.object.currency) === null || _12 === void 0 ? void 0 : _12.toUpperCase()}`,
+                        amount_paid: `$ ${(data.object.amount_paid / 100).toFixed(2)} ${(_15 = data.object.currency) === null || _15 === void 0 ? void 0 : _15.toUpperCase()}`,
                         period_end: `${expiresAt.getMonth() + 1}/${expiresAt.getDate()}/${expiresAt.getFullYear()}`,
-                        plan_amount: `$ ${(data.object.lines.data[0].plan.amount / 100).toFixed(2)} ${(_13 = data.object.currency) === null || _13 === void 0 ? void 0 : _13.toUpperCase()}`,
+                        plan_amount: `$ ${(data.object.lines.data[0].plan.amount / 100).toFixed(2)} ${(_16 = data.object.currency) === null || _16 === void 0 ? void 0 : _16.toUpperCase()}`,
                     }, {
                         publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
                         privateKey: process.env.EMAIL_JS_PRIVATE_KEY,
