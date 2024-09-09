@@ -981,7 +981,7 @@ app.put("/tests/update-analysis/:id", (req, res, next) => __awaiter(void 0, void
     }
 }));
 app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { priceId, isTrial, email } = req.body;
+    const { priceId, isTrial, email, backUrl } = req.body;
     let subscription_data = {
         trial_settings: {
             end_behavior: {
@@ -1014,7 +1014,7 @@ app.post("/create-subscription-checkout-session", (req, res, next) => __awaiter(
                 },
             },
             success_url: process.env.STRIPE_SUCCESS_URL,
-            cancel_url: process.env.STRIPE_CANCEL_URL,
+            cancel_url: backUrl,
         });
         return res.status(200).json(session.url);
     }

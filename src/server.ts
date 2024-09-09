@@ -1268,7 +1268,7 @@ app.put("/tests/update-analysis/:id", async (req, res, next) => {
 });
 
 app.post("/create-subscription-checkout-session", async (req, res, next) => {
-  const { priceId, isTrial, email } = req.body;
+  const { priceId, isTrial, email, backUrl} = req.body;
 
   let subscription_data: SubscriptionDataType | undefined = {
     trial_settings: {
@@ -1304,7 +1304,7 @@ app.post("/create-subscription-checkout-session", async (req, res, next) => {
         },
       },
       success_url: process.env.STRIPE_SUCCESS_URL,
-      cancel_url: process.env.STRIPE_CANCEL_URL,
+      cancel_url: backUrl,
     });
 
     return res.status(200).json(session.url);
